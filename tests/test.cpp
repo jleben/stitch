@@ -1,6 +1,6 @@
-#include "../signal.h"
-#include "../timer.h"
-#include "../events.h"
+#include "../interface/signal.h"
+#include "../interface/timer.h"
+#include "../interface/events.h"
 
 #include <thread>
 #include <chrono>

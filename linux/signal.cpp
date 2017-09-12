@@ -1,4 +1,4 @@
-#include "signal.h"
+#include "../interface/signal.h"
 #include "events_linux.h"
 
 #include <cstdint>
