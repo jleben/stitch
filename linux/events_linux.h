@@ -4,16 +4,17 @@
 
 namespace Concurrency {
 
-class Event
+class Linux_Event : public Event
 {
 public:
-    // Disconnect from source
-    virtual ~Event() {}
+    bool happend = true;
 
-    // Get file descriptor for waiting
-    virtual int fd() const = 0;
+    operator bool() override
+    {
+        return happend;
+    }
 
-    virtual void clear() = 0;
+    virtual void get_info(int & fd, uint32_t & mode) const = 0;
 };
 
 }

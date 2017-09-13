@@ -42,23 +42,29 @@ int main()
     auto e2 = s2.event();
     auto e3 = t.event();
 
-    Waiter w({ e1, e2, e3 });
+    Waiter w;
+    w.add_event(e1);
+    w.add_event(e2);
+    w.add_event(e3);
 
     for(;;)
     {
-        auto e = w.wait();
+        w.wait();
 
-        if (e == e1)
+        if (*e1)
         {
             cout << "One." << endl;
+            e1->clear();
         }
-        else if (e == e2)
+        else if (*e2)
         {
             cout << "Two." << endl;
+            e2->clear();
         }
-        else if (e == e3)
+        else if (*e3)
         {
             cout << "Three." << endl;
+            e3->clear();
         }
         else
         {

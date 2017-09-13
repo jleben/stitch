@@ -7,12 +7,13 @@
 
 #include <unistd.h>
 #include <sys/eventfd.h>
+#include <sys/epoll.h>
 
 using namespace std;
 
 namespace Concurrency {
 
-class Signal_Event : public Event
+class Signal_Event : public Linux_Event
 {
     int d_fd;
     weak_ptr<Signal::Implementation> d_parent;
@@ -26,10 +27,18 @@ public:
 
     ~Signal_Event();
 
-    int fd() const override { return d_fd; }
+    int fd() { return d_fd; }
+
+    void get_info(int & fd, uint32_t & mode) const override
+    {
+        fd = d_fd;
+        mode = EPOLLIN;
+    }
 
     void clear() override
     {
+        Linux_Event::happend = false;
+
         uint64_t count;
         read(d_fd, &count, sizeof(count));
     }

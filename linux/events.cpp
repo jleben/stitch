@@ -1,53 +1,75 @@
 #include "events_linux.h"
 #include "../interface/events.h"
 
+#include <list>
 #include <algorithm>
-
-#include <sys/select.h>
 #include <cstring>
+
+#include <unistd.h>
+#include <sys/epoll.h>
 
 using namespace std;
 
 namespace Concurrency {
 
-Waiter::Waiter(const std::vector<Event*> & events):
-    d_events(events)
-{}
-
-Event * Waiter::wait()
+class Waiter::Implementation
 {
-    fd_set fds;
-    FD_ZERO(&fds);
-
-    int fd_count = 0;
-
-    for (auto event : d_events)
+public:
+    Implementation()
     {
-        int fd = event->fd();
-        FD_SET(fd, &fds);
-        fd_count = max(fd + 1, fd_count);
+        epoll_fd = epoll_create(1);
+        ready_events.resize(5);
     }
 
-    int result = select(fd_count, &fds, nullptr, nullptr, nullptr);
-
-    if (result < 0)
+    ~Implementation()
     {
-        throw std::runtime_error(string("Select failed: ") + strerror(errno));
-    }
+        close(epoll_fd);
 
-    if (result == 0)
-        return nullptr;
-
-    for (auto event : d_events)
-    {
-        if (FD_ISSET(event->fd(), &fds))
+        for (Linux_Event * event : watched_events)
         {
-            event->clear();
-            return event;
+            delete event;
         }
     }
 
-    throw std::runtime_error("Selected file descriptor not found.");
+    int epoll_fd;
+    list<Linux_Event*> watched_events;
+    vector<epoll_event> ready_events;
+};
+
+Waiter::Waiter():
+    d(make_shared<Implementation>())
+{}
+
+void Waiter::add_event(Event * event)
+{
+    auto linux_event = static_cast<Linux_Event*>(event);
+
+    int fd;
+    uint32_t mode;
+    linux_event->get_info(fd, mode);
+
+    epoll_event options;
+    options.events = mode;
+    options.data.ptr = linux_event;
+
+    epoll_ctl(d->epoll_fd, EPOLL_CTL_ADD, fd, &options);
+
+    d->watched_events.push_back(linux_event);
+}
+
+void Waiter::wait()
+{
+    int result = epoll_wait(d->epoll_fd, d->ready_events.data(), d->ready_events.size(), -1);
+
+    if (result < 0)
+        throw std::runtime_error("Failed epoll_wait.");
+
+    for (int i = 0; i < result; ++i)
+    {
+        auto & options = d->ready_events[i];
+        auto event = reinterpret_cast<Linux_Event*>(options.data.ptr);
+        event->happend = true;
+    }
 }
 
 }

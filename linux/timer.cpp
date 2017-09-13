@@ -6,12 +6,13 @@
 
 #include <unistd.h>
 #include <sys/timerfd.h>
+#include <sys/epoll.h>
 
 using namespace std;
 
 namespace Concurrency {
 
-class Timer_Event : public Event
+class Timer_Event : public Linux_Event
 {
     int d_fd;
 
@@ -21,10 +22,18 @@ public:
         d_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
     }
 
-    int fd() const override { return d_fd; }
+    int fd() { return d_fd; }
+
+    void get_info(int & fd, uint32_t & mode) const override
+    {
+        fd = d_fd;
+        mode = EPOLLIN;
+    }
 
     void clear() override
     {
+        Linux_Event::happend = false;
+
         uint64_t count;
         read(d_fd, &count, sizeof(count));
     }
