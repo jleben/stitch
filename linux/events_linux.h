@@ -7,7 +7,7 @@ namespace Concurrency {
 class Linux_Event : public Event
 {
 public:
-    bool happend = true;
+    bool happend = false;
 
     operator bool() override
     {
