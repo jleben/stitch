@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/eventfd.h>
 #include <sys/epoll.h>
+#include <poll.h>
 
 using namespace std;
 
@@ -29,6 +30,20 @@ public:
 
     int fd() { return d_fd; }
 
+    void wait() override
+    {
+        pollfd data;
+        data.fd = d_fd;
+        data.events = POLLIN;
+
+        int result = poll(&data, 1, -1);
+
+        if (result == -1)
+            throw std::runtime_error("Failed to wait for event.");
+
+        clear();
+    }
+
     void get_info(int & fd, uint32_t & mode) const override
     {
         fd = d_fd;
@@ -37,8 +52,6 @@ public:
 
     void clear() override
     {
-        Linux_Event::happend = false;
-
         uint64_t count;
         read(d_fd, &count, sizeof(count));
     }

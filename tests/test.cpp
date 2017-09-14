@@ -49,31 +49,29 @@ int main()
     auto e2 = s2.event();
     auto e3 = t.event();
 
-    Waiter w;
-    w.add_event(e1);
-    w.add_event(e2);
-    w.add_event(e3);
-
     auto start = chrono::steady_clock::now();
+
+    e2->wait();
+
+    cout << time_since(start) << " Initial Two." << endl;
+
+    e3->wait();
+
+    cout << time_since(start) << " Initial Three." << endl;
+
+    Waiter w;
+    e1->subscribe(&w, [&](){
+        cout << time_since(start) << " One." << endl;
+    });
+    e2->subscribe(&w, [&](){
+        cout << time_since(start) << " Two." << endl;
+    });
+    e3->subscribe(&w, [&](){
+        cout << time_since(start) << " Three." << endl;
+    });
 
     for(;;)
     {
         w.wait();
-
-        if (*e1)
-        {
-            cout << time_since(start) << " One." << endl;
-            e1->clear();
-        }
-        if (*e2)
-        {
-            cout << time_since(start) << " Two." << endl;
-            e2->clear();
-        }
-        if (*e3)
-        {
-            cout << time_since(start) << " Three." << endl;
-            e3->clear();
-        }
     }
 }

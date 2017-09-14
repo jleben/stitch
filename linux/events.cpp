@@ -12,63 +12,60 @@ using namespace std;
 
 namespace Concurrency {
 
-class Waiter::Implementation
+void Linux_Event::subscribe(Waiter * waiter, Callback cb)
 {
-public:
-    Implementation()
-    {
-        epoll_fd = epoll_create(1);
-        ready_events.resize(5);
-    }
-
-    ~Implementation()
-    {
-        close(epoll_fd);
-
-        for (Linux_Event * event : watched_events)
-        {
-            delete event;
-        }
-    }
-
-    int epoll_fd;
-    list<Linux_Event*> watched_events;
-    vector<epoll_event> ready_events;
-};
+    waiter->d->add_event(this, cb);
+}
 
 Waiter::Waiter():
     d(make_shared<Implementation>())
 {}
 
-void Waiter::add_event(Event * event)
+void Waiter::wait()
 {
-    auto linux_event = static_cast<Linux_Event*>(event);
+    d->wait();
+}
+
+Waiter::Implementation::Implementation()
+{
+    epoll_fd = epoll_create(1);
+    ready_events.resize(5);
+}
+
+Waiter::Implementation::~Implementation()
+{
+    close(epoll_fd);
+}
+
+void Waiter::Implementation::add_event(Linux_Event * event, Event::Callback cb)
+{
+    watched_events.push_back({ event, cb });
 
     int fd;
     uint32_t mode;
-    linux_event->get_info(fd, mode);
+    event->get_info(fd, mode);
 
     epoll_event options;
     options.events = mode;
-    options.data.ptr = linux_event;
+    options.data.ptr = &watched_events.back();
 
-    epoll_ctl(d->epoll_fd, EPOLL_CTL_ADD, fd, &options);
-
-    d->watched_events.push_back(linux_event);
+    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &options);
 }
 
-void Waiter::wait()
+void Waiter::Implementation::wait()
 {
-    int result = epoll_wait(d->epoll_fd, d->ready_events.data(), d->ready_events.size(), -1);
+    int result = epoll_wait(epoll_fd, ready_events.data(), ready_events.size(), -1);
 
     if (result < 0)
         throw std::runtime_error("Failed epoll_wait.");
 
     for (int i = 0; i < result; ++i)
     {
-        auto & options = d->ready_events[i];
-        auto event = reinterpret_cast<Linux_Event*>(options.data.ptr);
-        event->happend = true;
+        auto & options = ready_events[i];
+        auto data = reinterpret_cast<Implementation::Event_Data*>(options.data.ptr);
+        data->event->clear();
+        if (data->cb)
+            data->cb();
     }
 }
 
