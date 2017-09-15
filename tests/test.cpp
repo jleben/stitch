@@ -5,6 +5,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include <atomic>
 
 using namespace Concurrency;
 using namespace std;
@@ -19,12 +20,14 @@ string time_since(const chrono::steady_clock::time_point & start)
 
 int main()
 {
+    atomic<bool> stop_threads;
+
     Signal s1;
     Signal s2;
 
     thread t1([&]()
     {
-        for(;;)
+        while(!stop_threads)
         {
             this_thread::sleep_for(chrono::milliseconds(1000));
 
@@ -34,7 +37,7 @@ int main()
 
     thread t2([&]()
     {
-        for(;;)
+        while(!stop_threads)
         {
             this_thread::sleep_for(chrono::milliseconds(2000));
 
@@ -42,36 +45,55 @@ int main()
         }
     });
 
-    Timer t;
-    t.setInterval(3, true);
+    Timer tm;
+    tm.setInterval(3, true);
+
+    Timer q;
+    q.setInterval(7);
 
     auto e1 = s1.event();
     auto e2 = s2.event();
-    auto e3 = t.event();
 
     auto start = chrono::steady_clock::now();
 
+    e1->wait();
+
+    cout << time_since(start) << " !One." << endl;
+
     e2->wait();
 
-    cout << time_since(start) << " Initial Two." << endl;
+    cout << time_since(start) << " !Two." << endl;
 
-    e3->wait();
+    e1->wait();
 
-    cout << time_since(start) << " Initial Three." << endl;
+    cout << time_since(start) << " !One." << endl;
 
-    Waiter w;
-    e1->subscribe(&w, [&](){
+
+    Event_Reactor r;
+    e1->subscribe(r, [&](){
         cout << time_since(start) << " One." << endl;
     });
-    e2->subscribe(&w, [&](){
+    e2->subscribe(r, [&](){
         cout << time_since(start) << " Two." << endl;
     });
-    e3->subscribe(&w, [&](){
+    tm.event()->subscribe(r, [&](){
         cout << time_since(start) << " Three." << endl;
     });
+    q.event()->subscribe(r, [&](){
+        cout << "Quit." << endl;
+        r.quit();
+    });
 
+    r.run(Event_Reactor::WaitUntilQuit);
+#if 0
     for(;;)
     {
-        w.wait();
+        r.run();
     }
+#endif
+
+    stop_threads = true;
+
+    t1.join();
+    t2.join();
 }

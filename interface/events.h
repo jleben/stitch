@@ -8,7 +8,7 @@ namespace Concurrency {
 
 using std::function;
 
-class Waiter;
+class Event_Reactor;
 class Linux_Event;
 
 class Event
@@ -18,15 +18,24 @@ public:
 
     virtual ~Event() {}
     virtual void wait() = 0;
-    virtual void subscribe(Waiter*, Callback) = 0;
+    virtual void subscribe(Event_Reactor&, Callback) = 0;
     virtual void clear() = 0;
 };
 
-class Waiter
+class Event_Reactor
 {
 public:
-    Waiter();
-    void wait();
+    Event_Reactor();
+
+    enum Mode
+    {
+        NoWait,
+        Wait,
+        WaitUntilQuit
+    };
+
+    void run(Mode = NoWait);
+    void quit();
 
     class Implementation;
 

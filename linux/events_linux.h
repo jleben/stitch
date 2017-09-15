@@ -15,12 +15,12 @@ using std::vector;
 class Linux_Event : public Event
 {
 public:
-    void subscribe(Waiter* waiter, Callback cb) override;
+    void subscribe(Event_Reactor&, Callback cb) override;
 
     virtual void get_info(int & fd, uint32_t & mode) const = 0;
 };
 
-class Waiter::Implementation
+class Event_Reactor::Implementation
 {
 public:
 
@@ -34,7 +34,9 @@ public:
     ~Implementation();
 
     void add_event(Linux_Event * event, Event::Callback cb);
-    void wait();
+    void run(Event_Reactor::Mode m);
+
+    bool running = false;
 
     int epoll_fd;
 
