@@ -6,6 +6,7 @@ set(sources
     linux/events.cpp
     linux/signal.cpp
     linux/timer.cpp
+    linux/file.cpp
 )
 
 add_library(concurrency SHARED ${sources})
