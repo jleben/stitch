@@ -44,6 +44,21 @@ void Timer::setInterval(const timespec & t, bool repeated)
     }
 }
 
+void Timer::stop()
+{
+    struct itimerspec spec;
+
+    spec.it_value.tv_sec = 0;
+    spec.it_value.tv_nsec = 0;
+    spec.it_interval.tv_sec = 0;
+    spec.it_interval.tv_nsec = 0;
+
+    if (timerfd_settime(d_fd, 0, &spec, nullptr) != 0)
+    {
+        throw std::runtime_error(string("Failed to stop timer: ") + strerror(errno));
+    }
+}
+
 void Timer::get_info(int & fd, uint32_t & mode) const
 {
     fd = d_fd;

@@ -14,10 +14,12 @@ public:
     ~Timer();
 
     template<class Rep, class Period>
-    void setInterval(const std::chrono::duration<Rep,Period> & dur, bool repeated = false)
+    void start(const std::chrono::duration<Rep,Period> & dur, bool repeated = false)
     {
         setInterval(to_timespec(dur), repeated);
     }
+
+    void stop();
 
     void wait() override;
     void clear() override;
