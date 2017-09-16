@@ -6,6 +6,7 @@ set(sources
     linux/events.cpp
     linux/signal.cpp
     linux/timer.cpp
+    linux/file_event.cpp
     linux/file.cpp
 )
 

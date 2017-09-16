@@ -1,31 +1,13 @@
 #pragma once
 
 #include "events.h"
+#include "file_event.h"
 
 #include <string>
 
 namespace Reactive {
 
 using std::string;
-
-class File_Event : public Event
-{
-public:
-    enum Type
-    {
-        Read_Ready,
-        Write_Ready
-    };
-
-    File_Event(int fd, Type);
-    virtual void get_info(int & fd, uint32_t & mode) const override;
-    virtual void wait() override;
-    virtual void clear() override;
-
-private:
-    int d_fd;
-    uint32_t d_mode;
-};
 
 class File
 {
