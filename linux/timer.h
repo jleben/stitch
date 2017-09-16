@@ -1,6 +1,7 @@
 #pragma once
 
 #include "events.h"
+#include "utils.h"
 
 #include <memory>
 
@@ -12,7 +13,12 @@ public:
     Timer();
     ~Timer();
 
-    void setInterval(int seconds, bool repeated = false);
+    template<class Rep, class Period>
+    void setInterval(const std::chrono::duration<Rep,Period> & dur, bool repeated = false)
+    {
+        setInterval(to_timespec(dur), repeated);
+    }
+
     void wait() override;
     void clear() override;
 
@@ -20,6 +26,8 @@ public:
     void get_info(int & fd, uint32_t & mode) const override;
 
 private:
+    void setInterval(const timespec &, bool repeated = false);
+
     int d_fd;
 };
 

@@ -22,17 +22,15 @@ Timer::~Timer()
     close(d_fd);
 }
 
-void Timer::setInterval(int seconds, bool repeated)
+void Timer::setInterval(const timespec & t, bool repeated)
 {
     struct itimerspec spec;
 
-    spec.it_value.tv_sec = seconds;
-    spec.it_value.tv_nsec = 0;
+    spec.it_value = t;
 
     if (repeated)
     {
-        spec.it_interval.tv_sec = seconds;
-        spec.it_interval.tv_nsec = 0;
+        spec.it_interval = t;
     }
     else
     {

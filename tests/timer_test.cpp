@@ -21,7 +21,7 @@ void test_single_shot()
     cout << endl << "Single shot" << endl;
 
     Timer t;
-    t.setInterval(2, false);
+    t.setInterval(chrono::milliseconds(1250), false);
 
     auto start = chrono::steady_clock::now();
 
@@ -35,7 +35,7 @@ void test_repeated()
     cout << endl << "Repeated" << endl;
 
     Timer t;
-    t.setInterval(1, true);
+    t.setInterval(chrono::milliseconds(250), true);
 
     auto start = chrono::steady_clock::now();
 
@@ -52,23 +52,23 @@ void test_subscribe()
     cout << endl << "Subscribe" << endl;
 
     Timer t1;
-    t1.setInterval(1, false);
+    t1.setInterval(chrono::milliseconds(250), false);
 
     Timer t2;
-    t2.setInterval(1, true);
+    t2.setInterval(chrono::milliseconds(250), true);
 
     Event_Reactor r;
 
     auto start = chrono::steady_clock::now();
 
     t1.subscribe(r, [&](){
-        cout << time_since(start) << "One" << endl;
+        cout << time_since(start) << " One" << endl;
     });
 
     int reps = 3;
 
     t2.subscribe(r, [&](){
-        cout << time_since(start) << "Two" << endl;
+        cout << time_since(start) << " Two" << endl;
 
         if (--reps == 0)
             r.quit();
