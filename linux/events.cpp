@@ -1,5 +1,4 @@
-#include "events_linux.h"
-#include "../interface/events.h"
+#include "events.h"
 
 #include <list>
 #include <algorithm>
@@ -10,41 +9,27 @@
 
 using namespace std;
 
-namespace Concurrency {
+namespace Reactive {
 
-void Linux_Event::subscribe(Event_Reactor & reactor, Callback cb)
+void Event::subscribe(Event_Reactor & reactor, Callback cb)
 {
-    reactor.d->add_event(this, cb);
+    reactor.add_event(this, cb);
 }
 
-Event_Reactor::Event_Reactor():
-    d(make_shared<Implementation>())
-{}
-
-void Event_Reactor::run(Mode mode)
+Event_Reactor::Event_Reactor()
 {
-    d->run(mode);
+    d_epoll_fd = epoll_create(1);
+    d_ready_events.resize(5);
 }
 
-void Event_Reactor::quit()
+Event_Reactor::~Event_Reactor()
 {
-    d->running = false;
+    close(d_epoll_fd);
 }
 
-Event_Reactor::Implementation::Implementation()
+void Event_Reactor::add_event(Event * event, Event::Callback cb)
 {
-    epoll_fd = epoll_create(1);
-    ready_events.resize(5);
-}
-
-Event_Reactor::Implementation::~Implementation()
-{
-    close(epoll_fd);
-}
-
-void Event_Reactor::Implementation::add_event(Linux_Event * event, Event::Callback cb)
-{
-    watched_events.push_back({ event, cb });
+    d_watched_events.push_back({ event, cb });
 
     int fd;
     uint32_t mode;
@@ -52,33 +37,40 @@ void Event_Reactor::Implementation::add_event(Linux_Event * event, Event::Callba
 
     epoll_event options;
     options.events = mode;
-    options.data.ptr = &watched_events.back();
+    options.data.ptr = &d_watched_events.back();
 
-    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &options);
+    epoll_ctl(d_epoll_fd, EPOLL_CTL_ADD, fd, &options);
 }
 
-void Event_Reactor::Implementation::run(Mode m)
+void Event_Reactor::run(Mode mode)
 {
-    running = true;
+    d_running = true;
 
     do
     {
-        int timeout = m == NoWait ? 0 : -1;
-        int result = epoll_wait(epoll_fd, ready_events.data(), ready_events.size(), timeout);
+        int timeout = (mode == NoWait) ? 0 : -1;
+        int result = epoll_wait(d_epoll_fd, d_ready_events.data(), d_ready_events.size(), timeout);
 
         if (result < 0)
             throw std::runtime_error("Failed epoll_wait.");
 
         for (int i = 0; i < result; ++i)
         {
-            auto & options = ready_events[i];
-            auto data = reinterpret_cast<Implementation::Event_Data*>(options.data.ptr);
+            auto & options = d_ready_events[i];
+            auto data = reinterpret_cast<Event_Data*>(options.data.ptr);
             data->event->clear();
             if (data->cb)
                 data->cb();
         }
     }
-    while(m == WaitUntilQuit && running);
+    while(mode == WaitUntilQuit && d_running);
 }
+
+void Event_Reactor::quit()
+{
+    d_running = false;
+}
+
+
 
 }

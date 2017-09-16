@@ -1,5 +1,4 @@
-#include "../interface/file.h"
-#include "events_linux.h"
+#include "file.h"
 
 #include <cstdint>
 #include <mutex>
@@ -15,120 +14,94 @@
 
 using namespace std;
 
-namespace Concurrency {
+namespace Reactive {
 
-class File_Event : public Linux_Event
+File_Event::File_Event(int fd, Type type):
+    d_fd(fd)
 {
-    int d_fd;
-    uint32_t d_mode;
-
-public:
-    File_Event(int fd, uint32_t mode):
-        d_fd(fd),
-        d_mode(mode)
-    {}
-
-    void wait() override
+    switch(type)
     {
-        pollfd data;
-        data.fd = d_fd;
-        data.events = d_mode;
-
-        int result = poll(&data, 1, -1);
-
-        if (result == -1)
-            throw std::runtime_error("Failed to wait for event.");
+    case Read_Ready:
+        d_mode = EPOLLIN;
+        break;
+    case Write_Ready:
+        d_mode = EPOLLOUT;
+        break;
     }
+}
 
-    void get_info(int & fd, uint32_t & mode) const override
-    {
-        fd = d_fd;
-        mode = d_mode;
-    }
-
-    void clear() override
-    {}
-};
-
-class File::Implementation
+void File_Event::get_info(int & fd, uint32_t & mode) const
 {
-public:
-    Implementation(const string & path, File::Access access, bool blocking):
-        Implementation(open_file(path, access, blocking))
-    {}
+    fd = d_fd;
+    mode = d_mode;
+}
 
-    Implementation(int fd):
-        fd(fd),
-        read_event(fd, EPOLLIN),
-        write_event(fd, EPOLLOUT)
-    {}
+void File_Event::wait()
+{
+    pollfd data;
+    data.fd = d_fd;
+    data.events = d_mode;
 
-    static int open_file(const string & path, File::Access access, bool blocking)
-    {
-        int flags;
+    int result = poll(&data, 1, -1);
 
-        switch (access)
-        {
-        case ReadOnly:
-            flags = O_RDONLY;
-            break;
-        case WriteOnly:
-            flags = O_WRONLY;
-            break;
-        case ReadWrite:
-            flags = O_RDWR;
-            break;
-        }
+    if (result == -1)
+        throw std::runtime_error("Failed to wait for event.");
+}
 
-        int fd;
-
-        {
-            int result = open(path.c_str(), flags);
-
-            if (result < 0)
-                throw std::runtime_error(string("Failed to open file: ") + strerror(errno));
-
-            fd = result;
-        }
-
-        if (!blocking)
-        {
-            int result = fcntl(fd, F_SETFL, O_NONBLOCK);
-            if (result == -1)
-                throw std::runtime_error("Failed to set non-blocking mode.");
-        }
-
-        return fd;
-    }
-
-    string path;
-    int fd;
-    File_Event read_event;
-    File_Event write_event;
-};
-
-
-File::File(int fd):
-    d(make_shared<Implementation>(fd))
+void File_Event::clear()
 {}
 
-File::File(const string & path, Access access, bool blocking):
-    d(make_shared<Implementation>(path, access, blocking))
+File::File(const string & path, File::Access access, bool blocking):
+    File(open_file(path, access, blocking))
+{}
+
+File::File(int fd):
+    d_fd(fd),
+    d_read_ready(fd, File_Event::Read_Ready),
+    d_write_ready(fd, File_Event::Write_Ready)
 {}
 
 File::~File()
 {
-    close(d->fd);
+    close(d_fd);
 }
 
-Event & File::read_ready()
+int File::open_file(const string & path, File::Access access, bool blocking)
 {
-    return d->read_event;
-}
+    int flags;
 
-Event & File::write_ready()
-{
-    return d->write_event;
+    switch (access)
+    {
+    case ReadOnly:
+        flags = O_RDONLY;
+        break;
+    case WriteOnly:
+        flags = O_WRONLY;
+        break;
+    case ReadWrite:
+        flags = O_RDWR;
+        break;
+    }
+
+    int fd;
+
+    {
+        int result = open(path.c_str(), flags);
+
+        if (result < 0)
+            throw std::runtime_error(string("Failed to open file: ") + strerror(errno));
+
+        fd = result;
+    }
+
+    if (!blocking)
+    {
+        int result = fcntl(fd, F_SETFL, O_NONBLOCK);
+        if (result == -1)
+            throw std::runtime_error("Failed to set non-blocking mode.");
+    }
+
+    return fd;
 }
 
 int File::read(void *dst, int count)
@@ -139,7 +112,7 @@ int File::read(void *dst, int count)
 
     while(read_count < count)
     {
-        int result = ::read(d->fd, dst, count);
+        int result = ::read(d_fd, dst, count);
         if (result == -1)
         {
             if (errno != EINTR)
@@ -167,7 +140,7 @@ int File::write(void *src, int count)
 
     while(write_count < count)
     {
-        int result = ::write(d->fd, src, count);
+        int result = ::write(d_fd, src, count);
         if (result == -1)
         {
             if (errno != EINTR)

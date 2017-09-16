@@ -1,5 +1,4 @@
-#include "../interface/timer.h"
-#include "events_linux.h"
+#include "timer.h"
 
 #include <cstdint>
 #include <cstring>
@@ -11,68 +10,20 @@
 
 using namespace std;
 
-namespace Concurrency {
+namespace Reactive {
 
-class Timer_Event : public Linux_Event
+Timer::Timer()
 {
-    int d_fd;
-
-public:
-    Timer_Event()
-    {
-        d_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
-    }
-
-    int fd() { return d_fd; }
-
-    void wait() override
-    {
-        pollfd data;
-        data.fd = d_fd;
-        data.events = POLLIN;
-
-        int result = poll(&data, 1, -1);
-
-        if (result == -1)
-            throw std::runtime_error("Failed to wait for event.");
-
-        clear();
-    }
-
-    void get_info(int & fd, uint32_t & mode) const override
-    {
-        fd = d_fd;
-        mode = EPOLLIN;
-    }
-
-    void clear() override
-    {
-        uint64_t count;
-        read(d_fd, &count, sizeof(count));
-    }
-};
-
-class Timer::Implementation
-{
-public:
-    Timer_Event event;
-};
-
-Timer::Timer():
-    d(make_shared<Implementation>())
-{
-
+    d_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 }
 
-Event * Timer::event()
+Timer::~Timer()
 {
-    return &d->event;
+    close(d_fd);
 }
 
 void Timer::setInterval(int seconds, bool repeated)
 {
-    int fd = d->event.fd();
-
     struct itimerspec spec;
 
     spec.it_value.tv_sec = seconds;
@@ -89,10 +40,36 @@ void Timer::setInterval(int seconds, bool repeated)
         spec.it_interval.tv_nsec = 0;
     }
 
-    if (timerfd_settime(fd, 0, &spec, nullptr) != 0)
+    if (timerfd_settime(d_fd, 0, &spec, nullptr) != 0)
     {
         throw std::runtime_error(string("Failed to set timer interval: ") + strerror(errno));
     }
+}
+
+void Timer::get_info(int & fd, uint32_t & mode) const
+{
+    fd = d_fd;
+    mode = EPOLLIN;
+}
+
+void Timer::wait()
+{
+    pollfd data;
+    data.fd = d_fd;
+    data.events = POLLIN;
+
+    int result = poll(&data, 1, -1);
+
+    if (result == -1)
+        throw std::runtime_error("Failed to wait for event.");
+
+    clear();
+}
+
+void Timer::clear()
+{
+    uint64_t count;
+    read(d_fd, &count, sizeof(count));
 }
 
 }

@@ -1,5 +1,4 @@
-#include "../interface/signal.h"
-#include "events_linux.h"
+#include "signal.h"
 
 #include <cstdint>
 #include <mutex>
@@ -12,98 +11,48 @@
 
 using namespace std;
 
-namespace Concurrency {
+namespace Reactive {
 
-class Signal_Event : public Linux_Event
+Signal::Signal()
 {
-    int d_fd;
-    weak_ptr<Signal::Implementation> d_parent;
+    d_fd = eventfd(0, EFD_NONBLOCK);
+}
 
-public:
-    Signal_Event(shared_ptr<Signal::Implementation> parent):
-        d_parent(parent)
-    {
-        d_fd = eventfd(0, EFD_NONBLOCK);
-    }
-
-    ~Signal_Event();
-
-    int fd() { return d_fd; }
-
-    void wait() override
-    {
-        pollfd data;
-        data.fd = d_fd;
-        data.events = POLLIN;
-
-        int result = poll(&data, 1, -1);
-
-        if (result == -1)
-            throw std::runtime_error("Failed to wait for event.");
-
-        clear();
-    }
-
-    void get_info(int & fd, uint32_t & mode) const override
-    {
-        fd = d_fd;
-        mode = EPOLLIN;
-    }
-
-    void clear() override
-    {
-        uint64_t count;
-        read(d_fd, &count, sizeof(count));
-    }
-};
-
-class Signal::Implementation
+Signal::~Signal()
 {
-public:
-    std::mutex mutex;
-    list<Signal_Event*> events;
-};
-
-Signal::Signal():
-    d(make_shared<Implementation>())
-{}
-
-Event * Signal::event()
-{
-    auto event = new Signal_Event(d);
-
-    {
-        lock_guard<mutex> guard(d->mutex);
-        d->events.push_back(event);
-    }
-
-    return event;
+    close(d_fd);
 }
 
 void Signal::notify()
 {
-    {
-        lock_guard<mutex> guard(d->mutex);
-
-        uint64_t count = 1;
-
-        for (auto event : d->events)
-        {
-            write(event->fd(), &count, sizeof(count));
-        }
-    }
+    uint64_t count = 1;
+    write(d_fd, &count, sizeof(count));
 }
 
-Signal_Event::~Signal_Event()
+void Signal::wait()
 {
-    auto parent = d_parent.lock();
+    pollfd data;
+    data.fd = d_fd;
+    data.events = POLLIN;
 
-    {
-        lock_guard<mutex> guard(parent->mutex);
-        parent->events.remove(this);
-    }
+    int result = poll(&data, 1, -1);
 
-    close(d_fd);
+    if (result == -1)
+        throw std::runtime_error("Failed to wait for event.");
+
+    clear();
+}
+
+void Signal::get_info(int & fd, uint32_t & mode) const
+{
+    fd = d_fd;
+    mode = EPOLLIN;
+}
+
+void Signal::clear()
+{
+    uint64_t count;
+    read(d_fd, &count, sizeof(count));
 }
 
 }

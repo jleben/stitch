@@ -1,4 +1,4 @@
-#include "../interface/file.h"
+#include "../linux/file.h"
 
 #include <thread>
 #include <chrono>
@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-using namespace Concurrency;
+using namespace Reactive;
 using namespace std;
 
 void test_fifo()
