@@ -54,20 +54,16 @@ class File::Implementation
 {
 public:
     Implementation(const string & path, File::Access access, bool blocking):
-        path(path),
-        fd(open_file(path, access)),
+        Implementation(open_file(path, access, blocking))
+    {}
+
+    Implementation(int fd):
+        fd(fd),
         read_event(fd, EPOLLIN),
         write_event(fd, EPOLLOUT)
-    {
-        if (!blocking)
-        {
-            int result = fcntl(fd, F_SETFL, O_NONBLOCK);
-            if (result == -1)
-                throw std::runtime_error("Failed to set non-blocking mode.");
-        }
-    }
+    {}
 
-    int open_file(const string & path, File::Access access)
+    static int open_file(const string & path, File::Access access, bool blocking)
     {
         int flags;
 
@@ -84,12 +80,25 @@ public:
             break;
         }
 
-        int result = open(path.c_str(), flags);
+        int fd;
 
-        if (result < 0)
-            throw std::runtime_error(string("Failed to open file: ") + strerror(errno));
+        {
+            int result = open(path.c_str(), flags);
 
-        return result;
+            if (result < 0)
+                throw std::runtime_error(string("Failed to open file: ") + strerror(errno));
+
+            fd = result;
+        }
+
+        if (!blocking)
+        {
+            int result = fcntl(fd, F_SETFL, O_NONBLOCK);
+            if (result == -1)
+                throw std::runtime_error("Failed to set non-blocking mode.");
+        }
+
+        return fd;
     }
 
     string path;
@@ -99,6 +108,9 @@ public:
 };
 
 
+File::File(int fd):
+    d(make_shared<Implementation>(fd))
+{}
 
 File::File(const string & path, Access access, bool blocking):
     d(make_shared<Implementation>(path, access, blocking))
@@ -107,11 +119,6 @@ File::File(const string & path, Access access, bool blocking):
 File::~File()
 {
     close(d->fd);
-}
-
-string File::path() const
-{
-    return d->path;
 }
 
 Event & File::read_ready()

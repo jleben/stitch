@@ -19,10 +19,9 @@ public:
         ReadWrite
     };
 
+    File(int fd);
     File(const string & path, Access, bool blocking = true);
     ~File();
-
-    string path() const;
 
     Event & read_ready();
     Event & write_ready();
@@ -36,5 +35,3 @@ private:
 };
 
 }
-
-
