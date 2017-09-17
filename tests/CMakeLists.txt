@@ -16,4 +16,4 @@ make_test(test-signal signal_test.cpp)
 
 make_test(test-waiter waiter_test.cpp)
 
-make_test(test-channel channel_test.cpp)
+make_test(test-rt-stream rt_stream_test.cpp)

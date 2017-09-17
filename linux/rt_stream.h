@@ -14,25 +14,25 @@ using std::lock_guard;
 using std::shared_ptr;
 
 template <typename T>
-class Stream_Producer;
+class Realtime_Stream_Source;
 
 template <typename T>
-class Stream_Consumer;
+class Realtime_Stream_Sink;
 
 template <typename T>
-void connect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer, int);
+void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
 
 template <typename T>
-void disconnect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer);
+void disconnect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
 template <typename T>
-class Stream
+class RT_Stream
 {
-    friend class Stream_Producer<T>;
-    friend class Stream_Consumer<T>;
+    friend class Realtime_Stream_Source<T>;
+    friend class Realtime_Stream_Sink<T>;
 
 public:
-    Stream(int size): d_data(size) {}
+    RT_Stream(int size): d_data(size) {}
 
     int size() const { return int(d_data.size()); }
 
@@ -83,8 +83,8 @@ private:
 template <typename T>
 class Stream_Iterator
 {
-    friend class Stream_Producer<T>;
-    friend class Stream_Consumer<T>;
+    friend class Realtime_Stream_Source<T>;
+    friend class Realtime_Stream_Sink<T>;
 
     T * d;
     int size;
@@ -109,19 +109,19 @@ public:
 };
 
 template <typename T>
-class Stream_Producer
+class Realtime_Stream_Source
 {
 public:
     friend
-    void connect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer, int);
+    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
 
     friend
-    void disconnect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer);
+    void disconnect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
-    ~Stream_Producer()
+    ~Realtime_Stream_Source()
     {
-        if (d_consumer)
-            disconnect(*this, *d_consumer);
+        if (d_sink)
+            disconnect(*this, *d_sink);
     }
 
     void push(const T & v)
@@ -135,7 +135,7 @@ public:
 
     struct Range
     {
-        Range(shared_ptr<Stream<T>> s, int size):
+        Range(shared_ptr<RT_Stream<T>> s, int size):
             stream(s),
             size(size)
         {}
@@ -145,7 +145,7 @@ public:
             stream->advance_write(size);
         }
 
-        shared_ptr<Stream<T>> stream;
+        shared_ptr<RT_Stream<T>> stream;
         int size;
 
         Stream_Iterator<T> begin()
@@ -181,24 +181,24 @@ public:
 
 private:
     mutex d_mutex;
-    shared_ptr<Stream<T>> d_stream = nullptr;
-    Stream_Consumer<T> * d_consumer = nullptr;
+    shared_ptr<RT_Stream<T>> d_stream = nullptr;
+    Realtime_Stream_Sink<T> * d_sink = nullptr;
 };
 
 template <typename T>
-class Stream_Consumer
+class Realtime_Stream_Sink
 {
 public:
     friend
-    void connect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer, int);
+    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
 
     friend
-    void disconnect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer);
+    void disconnect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
-    ~Stream_Consumer()
+    ~Realtime_Stream_Sink()
     {
-        if (d_producer)
-            disconnect(*d_producer, *this);
+        if (d_source)
+            disconnect(*d_source, *this);
     }
 
     T pop()
@@ -221,7 +221,7 @@ public:
 
     struct Range
     {
-        Range(shared_ptr<Stream<T>> s, int size):
+        Range(shared_ptr<RT_Stream<T>> s, int size):
             stream(s),
             size(size)
         {}
@@ -231,7 +231,7 @@ public:
             stream->advance_read(size);
         }
 
-        shared_ptr<Stream<T>> stream;
+        shared_ptr<RT_Stream<T>> stream;
         int size;
 
         Stream_Iterator<T> begin()
@@ -269,43 +269,43 @@ public:
 
 private:
     mutex d_mutex;
-    shared_ptr<Stream<T>> d_stream = nullptr;
-    Stream_Producer<T> * d_producer = nullptr;
+    shared_ptr<RT_Stream<T>> d_stream = nullptr;
+    Realtime_Stream_Source<T> * d_source = nullptr;
 };
 
 template <typename T>
-void connect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer, int size)
+void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int size)
 {
-    lock_guard<mutex> gp(producer.d_mutex);
-    lock_guard<mutex> gc(consumer.d_mutex);
+    lock_guard<mutex> gp(source.d_mutex);
+    lock_guard<mutex> gc(sink.d_mutex);
 
-    if (producer.d_stream || consumer.d_stream)
+    if (source.d_stream || sink.d_stream)
     {
-        if (producer.d_stream == consumer.d_stream)
+        if (source.d_stream == sink.d_stream)
             return;
         else
             throw std::runtime_error("Already connected elsewhere.");
     }
 
-    auto stream = std::make_shared<Stream<T>>(size);
-    producer.d_consumer = &consumer;
-    consumer.d_producer = &producer;
-    producer.d_stream = stream;
-    consumer.d_stream = stream;
+    auto stream = std::make_shared<RT_Stream<T>>(size);
+    source.d_sink = &sink;
+    sink.d_source = &source;
+    source.d_stream = stream;
+    sink.d_stream = stream;
 }
 
 template <typename T>
-void disconnect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer)
+void disconnect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink)
 {
-    lock_guard<mutex> gp(producer.d_mutex);
-    lock_guard<mutex> gc(consumer.d_mutex);
+    lock_guard<mutex> gp(source.d_mutex);
+    lock_guard<mutex> gc(sink.d_mutex);
 
-    if (producer.d_stream != nullptr && producer.d_stream == consumer.d_stream)
+    if (source.d_stream != nullptr && source.d_stream == sink.d_stream)
     {
-        producer.d_consumer = nullptr;
-        consumer.d_producer = nullptr;
-        producer.d_stream = nullptr;
-        consumer.d_stream = nullptr;
+        source.d_sink = nullptr;
+        sink.d_source = nullptr;
+        source.d_stream = nullptr;
+        sink.d_stream = nullptr;
     }
 }
 

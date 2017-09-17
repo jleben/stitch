@@ -1,4 +1,4 @@
-#include "../linux/channel.h"
+#include "../linux/rt_stream.h"
 #include "utils.h"
 
 #include <thread>
@@ -11,32 +11,32 @@ bool test_basic()
 {
     Testing::Test test;
 
-    Stream_Producer<int> producer;
-    Stream_Consumer<int> consumer;
+    Realtime_Stream_Source<int> source;
+    Realtime_Stream_Sink<int> sink;
 
-    connect(producer, consumer, 15);
+    connect(source, sink, 15);
 
     vector<int> received;
 
     for (int i = 0; i < 10; ++i)
     {
-        producer.push(i);
+        source.push(i);
     }
 
     for (int i = 0; i < 10; ++i)
     {
-        int val = consumer.pop();
+        int val = sink.pop();
         received.push_back(val);
     }
 
     for (int i = 10; i < 20; ++i)
     {
-        producer.push(i);
+        source.push(i);
     }
 
     for (int i = 10; i < 20; ++i)
     {
-        int val = consumer.pop();
+        int val = sink.pop();
         received.push_back(val);
     }
 
@@ -52,10 +52,10 @@ bool test_iterators()
 {
     Testing::Test test;
 
-    Stream_Producer<int> producer;
-    Stream_Consumer<int> consumer;
+    Realtime_Stream_Source<int> source;
+    Realtime_Stream_Sink<int> sink;
 
-    connect(producer, consumer, 10);
+    connect(source, sink, 10);
 
     vector<int> received;
 
@@ -63,34 +63,34 @@ bool test_iterators()
 
     for (int i = 0; i < 5; ++i)
     {
-        producer.push(w);
+        source.push(w);
         ++w;
     }
 
     for (int i = 0; i < 5; ++i)
     {
-        int val = consumer.pop();
+        int val = sink.pop();
         received.push_back(val);
     }
 
-    for (auto & available : producer.range(3))
+    for (auto & available : source.range(3))
     {
         available = w;
         ++w;
     }
 
-    for (auto & available : consumer.range(3))
+    for (auto & available : sink.range(3))
     {
         received.push_back(available);
     }
 
-    for (auto & available : producer.range())
+    for (auto & available : source.range())
     {
         available = w;
         ++w;
     }
 
-    for (auto & available : consumer.range())
+    for (auto & available : sink.range())
     {
         received.push_back(available);
     }
