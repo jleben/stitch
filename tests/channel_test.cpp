@@ -109,9 +109,9 @@ bool test_iterators()
 
 int main(int argc, char * argv[])
 {
-    Testing::Set t =
+    Testing::Test_Set t =
     { { "basic", test_basic },
       { "iterators", test_iterators } };
 
-    return t.run() ? 0 : 1;
+    return Testing::run(t, argc, argv);
 }

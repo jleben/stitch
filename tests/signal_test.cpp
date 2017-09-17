@@ -36,12 +36,12 @@ bool test_wait()
     return true;
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-    Set t = {
+    Test_Set t = {
         { "wait", test_wait }
     };
 
-    return t.run() ? 0 : 1;
+    return Testing::run(t, argc, argv);
 }
 

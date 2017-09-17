@@ -281,13 +281,13 @@ bool test_nonblocking_read()
     return test.success();
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-    Set t = {
+    Test_Set t = {
         { "basic", test_basic },
         { "blocking read", test_blocking_read },
         { "nonblocking read", test_nonblocking_read },
     };
 
-    return t.run() ? 0 : 1;
+    return Testing::run(t, argc, argv);
 }

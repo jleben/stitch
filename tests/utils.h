@@ -60,33 +60,26 @@ private:
     atomic<bool> d_success { true };
 };
 
-class Set
+class Test_Set
 {
 public:
+    struct Options
+    {
+        vector<string> filter_regex;
+    };
+
     using Func = function<bool()>;
 
-    Set(std::initializer_list<pair<string,Func>> tests):
+    Test_Set(std::initializer_list<pair<string,Func>> tests):
         d_tests(tests)
     {}
 
-    bool run()
-    {
-        bool all_ok = true;
-
-        using namespace std;
-        for (auto & test : d_tests)
-        {
-            cerr << endl << "-- " << test.first << endl;
-            bool ok = test.second();
-            cerr << "-- " << (ok ? "PASSED" : "FAILED") << endl;
-            all_ok &= ok;
-        }
-
-        return (all_ok ? 0 : 1);
-    }
+    bool run(const Options & options = Options());
 
 private:
     vector<pair<string,Func>> d_tests;
 };
+
+int run(Test_Set &, int argc, char * argv[]);
 
 }

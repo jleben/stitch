@@ -1,5 +1,6 @@
 #include "../linux/timer.h"
 #include "utils.h"
+#include "../arguments/arguments.hpp"
 
 #include <thread>
 #include <chrono>
@@ -140,7 +141,7 @@ bool test_stop()
 
 int main(int argc, char * argv[])
 {
-    Set t = {
+    Test_Set t = {
         { "Single Shot", test_single_shot },
         { "Repeated", test_repeated },
         { "Subscribe", test_subscribe },
@@ -148,5 +149,5 @@ int main(int argc, char * argv[])
         { "Stop", test_stop },
     };
 
-    return t.run() ? 0 : 1;
+    return Testing::run(t, argc, argv);
 }

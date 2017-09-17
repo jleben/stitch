@@ -3,17 +3,17 @@
 #add_executable(try test.cpp)
 #target_link_libraries(try concurrency pthread)
 
-add_executable(test-file file_test.cpp)
-target_link_libraries(test-file concurrency pthread)
+function(make_test name src)
+    add_executable(${name} ${src} utils.cpp)
+    target_link_libraries(${name} concurrency pthread)
+endfunction()
 
-add_executable(test-timer timer_test.cpp)
-target_link_libraries(test-timer concurrency pthread)
+make_test(test-file file_test.cpp)
 
-add_executable(test-signal signal_test.cpp)
-target_link_libraries(test-signal concurrency pthread)
+make_test(test-timer timer_test.cpp)
 
-add_executable(test-waiter waiter_test.cpp)
-target_link_libraries(test-waiter concurrency pthread)
+make_test(test-signal signal_test.cpp)
 
-add_executable(test-channel channel_test.cpp)
-target_link_libraries(test-channel concurrency pthread)
+make_test(test-waiter waiter_test.cpp)
+
+make_test(test-channel channel_test.cpp)

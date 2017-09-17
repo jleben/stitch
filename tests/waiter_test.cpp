@@ -48,9 +48,9 @@ bool test_next()
 
 int main(int argc, char *argv[])
 {
-    Testing::Set t = {
+    Testing::Test_Set t = {
         { "next", test_next }
     };
 
-    return t.run() ? 0 : 1;
+    return Testing::run(t, argc, argv);
 }
