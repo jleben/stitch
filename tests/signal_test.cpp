@@ -6,8 +6,9 @@
 
 using namespace Reactive;
 using namespace std;
+using namespace Testing;
 
-void test_wait()
+bool test_wait()
 {
     Signal s;
 
@@ -24,17 +25,23 @@ void test_wait()
 
     s.wait();
 
-    cout << Test::time_since(start) << endl;
+    cout << Testing::time_since(start) << endl;
 
     s.wait();
 
-    cout << Test::time_since(start) << endl;
+    cout << Testing::time_since(start) << endl;
 
     t1.join();
+
+    return true;
 }
 
 int main()
 {
-    test_wait();
+    Set t = {
+        { "wait", test_wait }
+    };
+
+    return t.run() ? 0 : 1;
 }
 

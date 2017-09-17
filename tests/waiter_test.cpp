@@ -4,8 +4,10 @@
 
 using namespace Reactive;
 
-void test_next()
+bool test_next()
 {
+    Testing::Test test;
+
     Signal s1;
     Signal s2;
 
@@ -16,33 +18,39 @@ void test_next()
     Event * e;
 
     e = w.next();
-    Test::assert("No event ready at start.", e == nullptr);
+    test.assert("No event ready at start.", e == nullptr);
 
     s1.notify();
     e = w.next();
-    Test::assert("S1 ready.", e == &s1);
+    test.assert("S1 ready.", e == &s1);
 
     s2.notify();
     e = w.next();
-    Test::assert("S2 ready.", e == &s2);
+    test.assert("S2 ready.", e == &s2);
 
     e = w.next();
-    Test::assert("Events cleared.", e == nullptr);
+    test.assert("Events cleared.", e == nullptr);
 
     s1.notify();
     s2.notify();
     {
         auto e1 = w.next();
-        Test::assert("One event ready.", e1 == &s1 || e1 == &s2);
+        test.assert("One event ready.", e1 == &s1 || e1 == &s2);
         auto e2 = w.next();
-        Test::assert("Another event ready.", e2 != e1 && (e2 == &s1 || e2 == &s2));
+        test.assert("Another event ready.", e2 != e1 && (e2 == &s1 || e2 == &s2));
     }
 
     e = w.next();
-    Test::assert("Events cleared.", e == nullptr);
+    test.assert("Events cleared.", e == nullptr);
+
+    return test.success();
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    test_next();
+    Testing::Set t = {
+        { "next", test_next }
+    };
+
+    return t.run() ? 0 : 1;
 }

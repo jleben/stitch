@@ -1,4 +1,5 @@
 #include "../linux/timer.h"
+#include "utils.h"
 
 #include <thread>
 #include <chrono>
@@ -6,20 +7,10 @@
 
 using namespace std;
 using namespace Reactive;
+using namespace Testing;
 
-double time_since(const chrono::steady_clock::time_point & start)
+bool test_single_shot()
 {
-    using namespace chrono;
-
-    auto d = chrono::steady_clock::now() - start;
-    double s = duration_cast<duration<double>>(d).count();
-    return s;
-}
-
-void test_single_shot()
-{
-    cout << endl << "Single shot" << endl;
-
     Timer t;
     t.start(chrono::milliseconds(1250), false);
 
@@ -29,12 +20,12 @@ void test_single_shot()
 
     cout << time_since(start) << endl;
 
-    cout << "OK" << endl;
+    return true;
 }
 
-void test_repeated()
+bool test_repeated()
 {
-    cout << endl << "Repeated" << endl;
+    Test test;
 
     Timer t;
     t.start(chrono::milliseconds(250), true);
@@ -48,12 +39,14 @@ void test_repeated()
         cout << time_since(start) << endl;
     }
 
-    cout << "OK" << endl;
+    test.assert("Completed.", true);
+
+    return test.success();
 }
 
-void test_subscribe()
+bool test_subscribe()
 {
-    cout << endl << "Subscribe" << endl;
+    Test t;
 
     Timer t1;
     t1.start(chrono::milliseconds(250), false);
@@ -85,15 +78,14 @@ void test_subscribe()
 
     r.run(Event_Reactor::WaitUntilQuit);
 
-    if (one_count == 1 && two_count == reps)
-        cout << "OK" << endl;
-    else
-        cout << "Not OK" << endl;
+    t.assert("Correct event count.", one_count == 1 && two_count == reps);
+
+    return t.success();
 }
 
-void test_restart()
+bool test_restart()
 {
-    cout << endl << "Restart" << endl;
+    Test test;
 
     Timer t;
 
@@ -111,15 +103,14 @@ void test_restart()
 
     cout << e << endl;
 
-    if (e >= 0.75)
-        cout << "OK" << endl;
-    else
-        cout << "Not OK" << endl;
+    test.assert("Elapsed time >= 0.75.", e >= 0.75);
+
+    return test.success();
 }
 
-void test_stop()
+bool test_stop()
 {
-    cout << endl << "Stop" << endl;
+    Test test;
 
     Timer t1;
     Timer t2;
@@ -143,17 +134,19 @@ void test_stop()
     });
 
     r.run(Event_Reactor::Wait);
+
+    return test.success();
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-    test_single_shot();
+    Set t = {
+        { "Single Shot", test_single_shot },
+        { "Repeated", test_repeated },
+        { "Subscribe", test_subscribe },
+        { "Restart", test_restart },
+        { "Stop", test_stop },
+    };
 
-    test_repeated();
-
-    test_subscribe();
-
-    test_restart();
-
-    test_stop();
+    return t.run() ? 0 : 1;
 }

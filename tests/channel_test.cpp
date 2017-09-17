@@ -7,8 +7,10 @@
 using namespace Reactive;
 using namespace std;
 
-void test_basic()
+bool test_basic()
 {
+    Testing::Test test;
+
     Stream_Producer<int> producer;
     Stream_Consumer<int> consumer;
 
@@ -40,12 +42,16 @@ void test_basic()
 
     for(int i = 0; i < received.size(); ++i)
     {
-        Test::assert("received[" + to_string(i) + "] = " + to_string(i), received[i] == i);
+        test.assert("received[" + to_string(i) + "] = " + to_string(i), received[i] == i);
     }
+
+    return test.success();
 }
 
-void test_iterators()
+bool test_iterators()
 {
+    Testing::Test test;
+
     Stream_Producer<int> producer;
     Stream_Consumer<int> consumer;
 
@@ -89,19 +95,23 @@ void test_iterators()
         received.push_back(available);
     }
 
-    Test::assert("Received count = 17", received.size() == 17);
+    test.assert("Received count = 17", received.size() == 17);
 
     for(int i = 0; i < received.size(); ++i)
     {
         ostringstream msg;
         msg << "received[" << i << "] = " << received[i];
-        Test::assert(msg.str(), received[i] == i);
+        test.assert(msg.str(), received[i] == i);
     }
+
+    return test.success();
 }
 
-int main()
+int main(int argc, char * argv[])
 {
-    test_basic();
+    Testing::Set t =
+    { { "basic", test_basic },
+      { "iterators", test_iterators } };
 
-    test_iterators();
+    return t.run() ? 0 : 1;
 }

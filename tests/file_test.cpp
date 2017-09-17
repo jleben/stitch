@@ -1,4 +1,5 @@
 #include "../linux/file.h"
+#include "utils.h"
 
 #include <thread>
 #include <chrono>
@@ -11,9 +12,12 @@
 
 using namespace Reactive;
 using namespace std;
+using namespace Testing;
 
-void test_fifo()
+bool test_basic()
 {
+    Test test;
+
     const string path("test.fifo");
 
     {
@@ -87,17 +91,20 @@ void test_fifo()
             if (c != sizeof(uint32_t))
                 throw std::runtime_error("Failed read.");
 
-            if (received != expected)
-                throw std::runtime_error("Received data not equal to expected.");
+            test.assert("Received = " + to_string(expected), received == expected);
         }
     });
 
     writer.join();
     reader.join();
+
+    return test.success();
 }
 
-void test_blocking_read()
+bool test_blocking_read()
 {
+    Test test;
+
     const string path("test.fifo");
 
     {
@@ -169,20 +176,20 @@ void test_blocking_read()
         {
             auto & v = received[rep];
 
-            printf("Read %d\n", v);
-
-            if (v != rep + 1)
-                throw std::runtime_error("Received data not equal to expected.");
+            test.assert("Received = " + to_string(v), v == rep + 1);
         }
     });
 
     writer.join();
     reader.join();
+
+    return test.success();
 }
 
-
-void test_nonblocking_read()
+bool test_nonblocking_read()
 {
+    Test test;
+
     const string path("test.fifo");
 
     {
@@ -264,34 +271,23 @@ void test_nonblocking_read()
         {
             auto & v = received[rep];
 
-            printf("Read %d\n", v);
-
-            if (v != rep + 1)
-                throw std::runtime_error("Received data not equal to expected.");
+            assert("Received = " + to_string(v), v == rep + 1);
         }
     });
 
     writer.join();
     reader.join();
-}
 
-template <typename F>
-void run(F f)
-{
-    // FIXME: This doesn't catch exceptions on other threads.
-
-    try {
-        cerr << endl;
-        f();
-        cerr << "-- Test OK" << endl;
-    } catch (std::exception & e) {
-        cerr << "-- Test failed: " << e.what() << endl;
-    }
+    return test.success();
 }
 
 int main()
 {
-    run(test_fifo);
-    run(test_blocking_read);
-    run(test_nonblocking_read);
+    Set t = {
+        { "basic", test_basic },
+        { "blocking read", test_blocking_read },
+        { "nonblocking read", test_nonblocking_read },
+    };
+
+    return t.run() ? 0 : 1;
 }
