@@ -118,6 +118,12 @@ public:
     friend
     void disconnect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer);
 
+    ~Stream_Producer()
+    {
+        if (d_consumer)
+            disconnect(*this, *d_consumer);
+    }
+
     void push(const T & v)
     {
         auto stream = d_stream;
@@ -176,6 +182,7 @@ public:
 private:
     mutex d_mutex;
     shared_ptr<Stream<T>> d_stream = nullptr;
+    Stream_Consumer<T> * d_consumer = nullptr;
 };
 
 template <typename T>
@@ -187,6 +194,12 @@ public:
 
     friend
     void disconnect<T>(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer);
+
+    ~Stream_Consumer()
+    {
+        if (d_producer)
+            disconnect(*d_producer, *this);
+    }
 
     T pop()
     {
@@ -257,6 +270,7 @@ public:
 private:
     mutex d_mutex;
     shared_ptr<Stream<T>> d_stream = nullptr;
+    Stream_Producer<T> * d_producer = nullptr;
 };
 
 template <typename T>
@@ -274,6 +288,8 @@ void connect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer, int s
     }
 
     auto stream = std::make_shared<Stream<T>>(size);
+    producer.d_consumer = &consumer;
+    consumer.d_producer = &producer;
     producer.d_stream = stream;
     consumer.d_stream = stream;
 }
@@ -286,6 +302,8 @@ void disconnect(Stream_Producer<T> & producer, Stream_Consumer<T> & consumer)
 
     if (producer.d_stream != nullptr && producer.d_stream == consumer.d_stream)
     {
+        producer.d_consumer = nullptr;
+        consumer.d_producer = nullptr;
         producer.d_stream = nullptr;
         consumer.d_stream = nullptr;
     }
