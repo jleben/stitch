@@ -14,3 +14,6 @@ target_link_libraries(test-signal concurrency pthread)
 
 add_executable(test-waiter waiter_test.cpp)
 target_link_libraries(test-waiter concurrency pthread)
+
+add_executable(test-channel channel_test.cpp)
+target_link_libraries(test-channel concurrency pthread)
