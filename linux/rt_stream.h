@@ -112,6 +112,8 @@ template <typename T>
 class Realtime_Stream_Source
 {
 public:
+    friend class Realtime_Stream_Sink<T>;
+
     friend
     void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
 
@@ -120,8 +122,21 @@ public:
 
     ~Realtime_Stream_Source()
     {
-        if (d_sink)
-            disconnect(*this, *d_sink);
+        bool done = false;
+
+        while(!done)
+        {
+            lock_guard<mutex> guard(d_mutex);
+
+            if (d_sink && d_sink->d_mutex.try_lock())
+            {
+                d_sink->d_source = nullptr;
+                d_sink->d_stream = nullptr;
+                d_sink = nullptr;
+            }
+
+            done = !d_sink;
+        }
     }
 
     void push(const T & v)
@@ -189,6 +204,8 @@ template <typename T>
 class Realtime_Stream_Sink
 {
 public:
+    friend class Realtime_Stream_Source<T>;
+
     friend
     void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
 
@@ -197,8 +214,21 @@ public:
 
     ~Realtime_Stream_Sink()
     {
-        if (d_source)
-            disconnect(*d_source, *this);
+        bool done = false;
+
+        while(!done)
+        {
+            lock_guard<mutex> guard(d_mutex);
+
+            if (d_source && d_source->d_mutex.try_lock())
+            {
+                d_source->d_sink = nullptr;
+                d_source->d_stream = nullptr;
+                d_source = nullptr;
+            }
+
+            done = !d_source;
+        }
     }
 
     T pop()
