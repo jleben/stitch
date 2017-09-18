@@ -70,6 +70,8 @@ public:
 
     using Func = function<bool()>;
 
+    Test_Set() {}
+
     Test_Set(std::initializer_list<pair<string,Func>> tests):
         d_tests(tests)
     {}
