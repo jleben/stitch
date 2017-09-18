@@ -5,6 +5,7 @@
 #include <sstream>
 
 using namespace Reactive;
+using namespace Testing;
 using namespace std;
 
 bool test_basic()
@@ -15,6 +16,9 @@ bool test_basic()
     Realtime_Stream_Sink<int> sink;
 
     connect(source, sink, 15);
+
+    test.assert("Source is connected.", source.is_connected());
+    test.assert("Sink is connected.", sink.is_connected());
 
     vector<int> received;
 
@@ -44,6 +48,11 @@ bool test_basic()
     {
         test.assert("received[" + to_string(i) + "] = " + to_string(i), received[i] == i);
     }
+
+    disconnect(source, sink);
+
+    test.assert("Source is not connected.", !source.is_connected());
+    test.assert("Sink is not connected.", !sink.is_connected());
 
     return test.success();
 }
@@ -107,11 +116,37 @@ bool test_iterators()
     return test.success();
 }
 
+bool test_disconnect_when_destroyed()
+{
+    Test test;
+
+    {
+        Realtime_Stream_Source<int> source;
+        {
+            Realtime_Stream_Sink<int> sink;
+            connect(source, sink, 1);
+        }
+        test.assert("Source is not connected.", !source.is_connected());
+    }
+    {
+        Realtime_Stream_Sink<int> sink;
+        {
+            Realtime_Stream_Source<int> source;
+            connect(source, sink, 1);
+        }
+        test.assert("Sink is not connected.", !sink.is_connected());
+    }
+
+    return test.success();
+}
+
 int main(int argc, char * argv[])
 {
-    Testing::Test_Set t =
-    { { "basic", test_basic },
-      { "iterators", test_iterators } };
+    Test_Set t = {
+        { "basic", test_basic },
+        { "iterators", test_iterators },
+        { "disconnect when destroyed ", test_disconnect_when_destroyed }
+    };
 
     return Testing::run(t, argc, argv);
 }

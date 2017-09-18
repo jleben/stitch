@@ -139,6 +139,12 @@ public:
         }
     }
 
+    bool is_connected()
+    {
+        lock_guard<mutex> guard (d_mutex);
+        return d_sink != nullptr;
+    }
+
     void push(const T & v)
     {
         auto stream = d_stream;
@@ -229,6 +235,12 @@ public:
 
             done = !d_source;
         }
+    }
+
+    bool is_connected()
+    {
+        lock_guard<mutex> guard (d_mutex);
+        return d_source != nullptr;
     }
 
     T pop()
