@@ -30,7 +30,7 @@ bool Test_Set::run(const Options & options)
     using namespace std;
     for (auto & test : d_tests)
     {
-        if (!filter_pattern.empty() && !regex_match(test.first, filter))
+        if (!filter_pattern.empty() && !regex_search(test.first, filter))
         {
             continue;
         }
