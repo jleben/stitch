@@ -120,6 +120,12 @@ public:
         }
     }
 
+    int count()
+    {
+        lock_guard<mutex> guard(d_mutex);
+        return (int) d_queue.size();
+    }
+
     bool empty()
     {
         lock_guard<mutex> guard(d_mutex);
