@@ -269,6 +269,11 @@ public:
         return d_stream->readable_size();
     }
 
+    bool empty()
+    {
+        return count() == 0;
+    }
+
     T pop()
     {
         auto stream = d_stream;
