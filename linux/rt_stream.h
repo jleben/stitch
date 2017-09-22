@@ -20,7 +20,7 @@ template <typename T>
 class Realtime_Stream_Sink;
 
 template <typename T>
-void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
+void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
 template <typename T>
 void disconnect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
@@ -32,13 +32,13 @@ class RT_Stream
     friend class Realtime_Stream_Sink<T>;
 
 public:
-    RT_Stream(int size): d_data(size) {}
+    RT_Stream(int size): d_data(size + 1) {}
 
-    int size() const { return int(d_data.size()); }
+    int capacity() const { return int(d_data.size()) - 1; }
 
     int readable_size() const
     {
-        int s = size();
+        int s = d_data.size();
 
         if (!s)
             return 0;
@@ -51,7 +51,7 @@ public:
 
     int writable_size() const
     {
-        int s = size();
+        int s = d_data.size();
 
         if (!s)
             return 0;
@@ -86,10 +86,12 @@ class Stream_Iterator
     friend class Realtime_Stream_Source<T>;
     friend class Realtime_Stream_Sink<T>;
 
-    T * d;
-    int size;
-    int pos;
+    T * d = nullptr;
+    int size = 0;
+    int pos = -1;
+
     Stream_Iterator() {}
+    Stream_Iterator(T * d, int size, int pos): d(d), size(size), pos(pos) {}
 
 public:
     Stream_Iterator & operator++()
@@ -115,7 +117,7 @@ public:
     friend class Realtime_Stream_Sink<T>;
 
     friend
-    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
+    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
     friend
     void disconnect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
@@ -131,7 +133,6 @@ public:
             if (d_sink && d_sink->d_mutex.try_lock())
             {
                 d_sink->d_source = nullptr;
-                d_sink->d_stream = nullptr;
                 d_sink = nullptr;
             }
 
@@ -148,7 +149,9 @@ public:
     void push(const T & v)
     {
         auto stream = d_stream;
-        if (!stream || !stream->writable_size())
+        if (!stream)
+            return;
+        if (!stream->writable_size())
             throw std::runtime_error("No space to write.");
         stream->d_data[stream->d_write_pos] = v;
         stream->advance_write(1);
@@ -156,6 +159,11 @@ public:
 
     struct Range
     {
+        shared_ptr<RT_Stream<T>> stream;
+        int size = 0;
+
+        Range() {}
+
         Range(shared_ptr<RT_Stream<T>> s, int size):
             stream(s),
             size(size)
@@ -163,41 +171,45 @@ public:
 
         ~Range()
         {
-            stream->advance_write(size);
+            if (stream)
+                stream->advance_write(size);
         }
-
-        shared_ptr<RT_Stream<T>> stream;
-        int size;
 
         Stream_Iterator<T> begin()
         {
-            Stream_Iterator<T> it;
-            it.d = stream->d_data.data();
-            it.size = stream->size();
-            it.pos = stream->d_write_pos;
-            return it;
+            if (stream)
+                return Stream_Iterator<T>(stream->d_data.data(), stream->d_data.size(), stream->d_write_pos);
+            else
+                return Stream_Iterator<T>();
         }
 
         Stream_Iterator<T> end()
         {
-            Stream_Iterator<T> it;
-            it.pos = (stream->d_write_pos + size) % stream->size();
-            return it;
+            if (stream)
+                return Stream_Iterator<T>(nullptr, 0, (stream->d_write_pos + size) % stream->d_data.size());
+            else
+                return Stream_Iterator<T>();
         }
     };
 
     Range range() const
     {
         auto stream = d_stream;
-        return Range(stream, stream->writable_size());
+        if (stream)
+            return Range(stream, stream->writable_size());
+        else
+            return Range();
     }
 
     Range range(int size) const
     {
         auto stream = d_stream;
-        if (size > stream->writable_size())
+        if ((!stream && size > 0) || (stream && size > stream->writable_size()))
             throw std::runtime_error("Not enough space.");
-        return Range(stream, size);
+        if (stream)
+            return Range(stream, size);
+        else
+            return Range();
     }
 
 private:
@@ -213,10 +225,14 @@ public:
     friend class Realtime_Stream_Source<T>;
 
     friend
-    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int);
+    void connect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
 
     friend
     void disconnect<T>(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink);
+
+    Realtime_Stream_Sink(int size):
+        d_stream(std::make_shared<RT_Stream<T>>(size))
+    {}
 
     ~Realtime_Stream_Sink()
     {
@@ -243,11 +259,19 @@ public:
         return d_source != nullptr;
     }
 
+    int capacity()
+    {
+        return d_stream->capacity();
+    }
+
+    int count()
+    {
+        return d_stream->readable_size();
+    }
+
     T pop()
     {
         auto stream = d_stream;
-        if (!stream || !stream->readable_size())
-            throw std::runtime_error("Nothing to read.");
         T v = stream->d_data[stream->d_read_pos];
         stream->advance_read(1);
         return v;
@@ -256,8 +280,6 @@ public:
     void clear()
     {
         auto stream = d_stream;
-        if (!stream)
-            return;
         stream->advance_read(stream->readable_size());
     }
 
@@ -278,18 +300,12 @@ public:
 
         Stream_Iterator<T> begin()
         {
-            Stream_Iterator<T> it;
-            it.d = stream->d_data.data();
-            it.size = stream->size();
-            it.pos = stream->d_read_pos;
-            return it;
+            return Stream_Iterator<T>(stream->d_data.data(), stream->d_data.size(), stream->d_read_pos);
         }
 
         Stream_Iterator<T> end()
         {
-            Stream_Iterator<T> it;
-            it.pos = (stream->d_read_pos + size) % stream->size();
-            return it;
+            return Stream_Iterator<T>(nullptr, 0, (stream->d_read_pos + size) % stream->d_data.size());
         }
     };
 
@@ -311,29 +327,24 @@ public:
 
 private:
     mutex d_mutex;
-    shared_ptr<RT_Stream<T>> d_stream = nullptr;
+    shared_ptr<RT_Stream<T>> d_stream;
     Realtime_Stream_Source<T> * d_source = nullptr;
 };
 
 template <typename T>
-void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink, int size)
+void connect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & sink)
 {
     lock_guard<mutex> gp(source.d_mutex);
     lock_guard<mutex> gc(sink.d_mutex);
 
-    if (source.d_stream || sink.d_stream)
-    {
-        if (source.d_stream == sink.d_stream)
-            return;
-        else
-            throw std::runtime_error("Already connected elsewhere.");
-    }
+    if (source.d_stream == sink.d_stream)
+        return;
+    else if (source.d_stream)
+        throw std::runtime_error("Already connected elsewhere.");
 
-    auto stream = std::make_shared<RT_Stream<T>>(size);
     source.d_sink = &sink;
     sink.d_source = &source;
-    source.d_stream = stream;
-    sink.d_stream = stream;
+    source.d_stream = sink.d_stream;
 }
 
 template <typename T>
@@ -342,12 +353,11 @@ void disconnect(Realtime_Stream_Source<T> & source, Realtime_Stream_Sink<T> & si
     lock_guard<mutex> gp(source.d_mutex);
     lock_guard<mutex> gc(sink.d_mutex);
 
-    if (source.d_stream != nullptr && source.d_stream == sink.d_stream)
+    if (source.d_stream == sink.d_stream)
     {
         source.d_sink = nullptr;
         sink.d_source = nullptr;
         source.d_stream = nullptr;
-        sink.d_stream = nullptr;
     }
 }
 
