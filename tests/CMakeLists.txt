@@ -3,9 +3,11 @@
 #add_executable(try test.cpp)
 #target_link_libraries(try concurrency pthread)
 
+add_library(testing STATIC ../testing/testing.cpp)
+
 function(make_test name src)
-    add_executable(${name} ${src} utils.cpp)
-    target_link_libraries(${name} concurrency pthread)
+    add_executable(${name} ${src})
+    target_link_libraries(${name} testing concurrency pthread)
 endfunction()
 
 make_test(test-file file_test.cpp)

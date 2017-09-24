@@ -1,6 +1,5 @@
 #include "../linux/timer.h"
-#include "utils.h"
-#include "../arguments/arguments.hpp"
+#include "../testing/testing.h"
 
 #include <thread>
 #include <chrono>

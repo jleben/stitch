@@ -1,5 +1,5 @@
 #include "../linux/stream.h"
-#include "utils.h"
+#include "../testing/testing.h"
 
 using namespace Reactive;
 using namespace Testing;
