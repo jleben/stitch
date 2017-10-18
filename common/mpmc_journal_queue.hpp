@@ -12,19 +12,21 @@ namespace Reactive {
 using std::vector;
 using std::atomic;
 
+// FIXME: Use atomic_flag instead of atomic<bool>
+
 template <typename T>
 class MPMC_Journal_Queue : public Queue<T>
 {
 public:
     MPMC_Journal_Queue(int size):
         d_data(next_power_of_two(size)),
-        d_journal(new atomic<bool>[d_data.size()]),
+        d_journal(d_data.size()),
         d_wrap_mask(d_data.size() - 1),
         d_readable(0),
         d_writable(d_data.size() - 1)
     {
-        for (int i = 0; i < d_data.size(); ++i)
-            d_journal[i] = false;
+        for (auto & val : d_journal)
+            val = false;
 
         d_worker = std::thread(&MPMC_Journal_Queue::work, this);
     }
@@ -34,7 +36,6 @@ public:
         d_quit = true;
         d_io_event.notify();
         d_worker.join();
-        delete [] d_journal;
     }
 
     bool empty() override
@@ -111,7 +112,7 @@ private:
     }
 
     vector<T> d_data;
-    atomic<bool> *d_journal;
+    vector<atomic<bool>> d_journal;
     int d_wrap_mask = 0;
 
     atomic<int> d_head { 0 };
