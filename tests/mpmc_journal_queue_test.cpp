@@ -8,6 +8,8 @@ bool test()
 {
     Testing::Test test;
 
+    test.assert("Lockfree.", MPMC_Journal_Queue<int>::is_lockfree());
+
     MPMC_Journal_Queue<int> q (10);
 
     for (int rep = 0; rep < 3; ++rep)

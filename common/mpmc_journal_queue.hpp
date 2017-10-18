@@ -18,6 +18,11 @@ template <typename T>
 class MPMC_Journal_Queue : public Queue<T>
 {
 public:
+    static bool is_lockfree()
+    {
+        return ATOMIC_INT_LOCK_FREE && ATOMIC_BOOL_LOCK_FREE;
+    }
+
     MPMC_Journal_Queue(int size):
         d_data(next_power_of_two(size)),
         d_journal(d_data.size()),
