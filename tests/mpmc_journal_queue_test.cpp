@@ -10,18 +10,21 @@ bool test()
 
     MPMC_Journal_Queue<int> q (10);
 
-    for (int i = 0; i < 5; ++i)
+    for (int rep = 0; rep < 3; ++rep)
     {
-        q.push(i);
-    }
+        for (int i = 0; i < 7; ++i)
+        {
+            q.push(i);
+        }
 
-    for (int i = 0; i < 5; ++i)
-    {
-        while(q.empty())
-            q.event().wait();
+        for (int i = 0; i < 7; ++i)
+        {
+            while(q.empty())
+                q.event().wait();
 
-        int v = q.pop();
-        test.assert("Popped " + to_string(v), v == i);
+            int v = q.pop();
+            test.assert("Popped " + to_string(v), v == i);
+        }
     }
 
     return test.success();
