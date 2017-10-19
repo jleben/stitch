@@ -51,7 +51,7 @@ bool test_basic()
 
         for(int rep = 0; rep < reps; ++rep)
         {
-            f.write_ready().wait();
+            wait(f.write_ready());
 
             printf("Write ready\n");
 
@@ -76,7 +76,7 @@ bool test_basic()
 
         for(int rep = 0; rep < reps; ++rep)
         {
-            f.read_ready().wait();
+            wait(f.read_ready());
 
             printf("Read ready\n");
 
@@ -138,7 +138,7 @@ bool test_blocking_read()
 
         for(int rep = 0; rep < reps; ++rep)
         {
-            f.write_ready().wait();
+            wait(f.write_ready());
 
             printf("Write ready\n");
 
@@ -161,7 +161,7 @@ bool test_blocking_read()
 
         vector<uint32_t> received(reps, 0);
 
-        f.read_ready().wait();
+        wait(f.read_ready());
 
         printf("Read ready\n");
 
@@ -223,7 +223,7 @@ bool test_nonblocking_read()
 
         for(int rep = 0; rep < reps; ++rep)
         {
-            f.write_ready().wait();
+            wait(f.write_ready());
 
             printf("Write ready\n");
 
@@ -252,7 +252,7 @@ bool test_nonblocking_read()
 
         while(received_size < total_size)
         {
-            f.read_ready().wait();
+            wait(f.read_ready());
 
             printf("Read ready\n");
 
