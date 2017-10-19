@@ -41,6 +41,7 @@ Event Signal::event()
     e.fd = d_fd;
     e.epoll_events = EPOLLIN;
     e.poll_events = POLLIN;
+    e.clear = std::bind(&Signal::clear, this);
     return e;
 }
 

@@ -22,6 +22,8 @@ void wait(const Event & e)
 
     if (result == -1)
         throw std::runtime_error("Failed to wait for event.");
+
+    e.clear();
 }
 
 Event_Reactor::Event_Reactor()
@@ -39,14 +41,17 @@ Event_Stream Event_Reactor::add(const Event & event)
 {
     d_watched_events.emplace_back();
 
+    auto & watched_event = d_watched_events.back();
+    watched_event.clear = event.clear;
+
     epoll_event options;
     options.events = event.epoll_events;
-    options.data.ptr = &d_watched_events.back();
+    options.data.ptr = &watched_event;
 
     epoll_ctl(d_epoll_fd, EPOLL_CTL_ADD, event.fd, &options);
 
     Event_Stream stream;
-    stream.callbacks = &d_watched_events.back().cb;
+    stream.callbacks = &watched_event.cb;
     return stream;
 }
 
@@ -66,6 +71,7 @@ void Event_Reactor::run(Mode mode)
         {
             auto & options = d_ready_events[i];
             auto data = reinterpret_cast<Event_Data*>(options.data.ptr);
+            data->clear();
             for(auto & cb : data->cb)
                 cb();
         }

@@ -21,6 +21,7 @@ public:
     int fd;
     uint32_t epoll_events;
     short poll_events;
+    function<void()> clear;
 };
 
 // FIXME: Reactive::wait is not very useful on its own,
@@ -83,6 +84,7 @@ private:
 
     struct Event_Data
     {
+        function<void()> clear;
         list<Event_Stream::Callback> cb;
     };
 

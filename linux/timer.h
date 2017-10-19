@@ -21,36 +21,17 @@ public:
 
     void stop();
 
-    void wait() { Reactive::wait(event()); clear(); }
-    void clear();
+    void wait() { Reactive::wait(event()); }
 
     Event event();
 
-    class Stream
+    Event_Stream stream(Event_Reactor & reactor)
     {
-        friend class Timer;
-        Timer * timer;
-        Event_Stream stream;
-
-    public:
-        template <typename T>
-        void subscribe(T f)
-        {
-            auto t = timer;
-            // FIXME: Not cool: every subscriber will clear.
-            stream.subscribe([=](){ t->clear(); f(); });
-        }
-    };
-
-    Stream stream(Event_Reactor & reactor)
-    {
-        Stream s;
-        s.timer = this;
-        s.stream = reactor.add(event());
-        return s;
+        return reactor.add(event());
     }
 
 private:
+    void clear();
     void setInterval(const timespec &, bool repeated = false);
 
     int d_fd;

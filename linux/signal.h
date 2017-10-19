@@ -13,37 +13,18 @@ public:
     ~Signal();
 
     void notify();
-    void wait() { Reactive::wait(event()); clear(); }
-    void clear();
+    void wait() { Reactive::wait(event()); }
 
     Event event();
 
-    // A Stream and its subscriptions are valid until
-    // the Signal that the Stream comes from is destroyed.
-    class Stream
+    Event_Stream stream(Event_Reactor & reactor)
     {
-        friend class Signal;
-        Signal * signal;
-        Event_Stream stream;
-
-    public:
-        template <typename T>
-        void subscribe(T f)
-        {
-            auto sig = signal;
-            stream.subscribe([=](){ sig->clear(); f(); });
-        }
-    };
-
-    Stream stream(Event_Reactor & reactor)
-    {
-        Stream s;
-        s.signal = this;
-        s.stream = reactor.add(event());
-        return s;
+        return reactor.add(event());
     }
 
 private:
+    void clear();
+
     int d_fd;
 };
 
