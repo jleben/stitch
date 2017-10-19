@@ -16,7 +16,7 @@ void wait(const Event & e)
 {
     pollfd data;
     data.fd = e.fd;
-    data.events = e.mode;
+    data.events = e.poll_events;
 
     int result = poll(&data, 1, -1);
 
@@ -40,7 +40,7 @@ Event_Stream Event_Reactor::add(const Event & event)
     d_watched_events.emplace_back();
 
     epoll_event options;
-    options.events = event.mode;
+    options.events = event.epoll_events;
     options.data.ptr = &d_watched_events.back();
 
     epoll_ctl(d_epoll_fd, EPOLL_CTL_ADD, event.fd, &options);

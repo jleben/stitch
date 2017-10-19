@@ -59,30 +59,19 @@ void Timer::stop()
     }
 }
 
-void Timer::get_info(int & fd, uint32_t & mode) const
-{
-    fd = d_fd;
-    mode = EPOLLIN;
-}
-
-void Timer::wait()
-{
-    pollfd data;
-    data.fd = d_fd;
-    data.events = POLLIN;
-
-    int result = poll(&data, 1, -1);
-
-    if (result == -1)
-        throw std::runtime_error("Failed to wait for event.");
-
-    clear();
-}
-
 void Timer::clear()
 {
     uint64_t count;
     read(d_fd, &count, sizeof(count));
+}
+
+Event Timer::event()
+{
+    Event e;
+    e.fd = d_fd;
+    e.epoll_events = EPOLLIN;
+    e.poll_events = POLLIN;
+    return e;
 }
 
 }

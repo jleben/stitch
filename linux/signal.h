@@ -16,13 +16,7 @@ public:
     void wait() { Reactive::wait(event()); clear(); }
     void clear();
 
-    Event event()
-    {
-        Event e;
-        e.fd = d_fd;
-        e.mode = EPOLLIN;
-        return e;
-    }
+    Event event();
 
     // A Stream and its subscriptions are valid until
     // the Signal that the Stream comes from is destroyed.
@@ -36,7 +30,8 @@ public:
         template <typename T>
         void subscribe(T f)
         {
-            stream.subscribe([=](){ signal->clear(); f(); });
+            auto sig = signal;
+            stream.subscribe([=](){ sig->clear(); f(); });
         }
     };
 

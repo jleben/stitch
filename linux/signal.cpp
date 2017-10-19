@@ -35,4 +35,13 @@ void Signal::clear()
     read(d_fd, &count, sizeof(count));
 }
 
+Event Signal::event()
+{
+    Event e;
+    e.fd = d_fd;
+    e.epoll_events = EPOLLIN;
+    e.poll_events = POLLIN;
+    return e;
+}
+
 }

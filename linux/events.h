@@ -19,7 +19,8 @@ class Event
 {
 public:
     int fd;
-    uint32_t mode;
+    uint32_t epoll_events;
+    short poll_events;
 };
 
 // FIXME: Reactive::wait is not very useful on its own,

@@ -7,7 +7,7 @@
 
 namespace Reactive {
 
-class Timer : public Event
+class Timer
 {
 public:
     Timer();
@@ -21,11 +21,34 @@ public:
 
     void stop();
 
-    void wait() override;
-    void clear() override;
+    void wait() { Reactive::wait(event()); clear(); }
+    void clear();
 
-    int fd() const { return d_fd; }
-    void get_info(int & fd, uint32_t & mode) const override;
+    Event event();
+
+    class Stream
+    {
+        friend class Timer;
+        Timer * timer;
+        Event_Stream stream;
+
+    public:
+        template <typename T>
+        void subscribe(T f)
+        {
+            auto t = timer;
+            // FIXME: Not cool: every subscriber will clear.
+            stream.subscribe([=](){ t->clear(); f(); });
+        }
+    };
+
+    Stream stream(Event_Reactor & reactor)
+    {
+        Stream s;
+        s.timer = this;
+        s.stream = reactor.add(event());
+        return s;
+    }
 
 private:
     void setInterval(const timespec &, bool repeated = false);
