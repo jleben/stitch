@@ -29,26 +29,6 @@ void Signal::notify()
     write(d_fd, &count, sizeof(count));
 }
 
-void Signal::wait()
-{
-    pollfd data;
-    data.fd = d_fd;
-    data.events = POLLIN;
-
-    int result = poll(&data, 1, -1);
-
-    if (result == -1)
-        throw std::runtime_error("Failed to wait for event.");
-
-    clear();
-}
-
-void Signal::get_info(int & fd, uint32_t & mode) const
-{
-    fd = d_fd;
-    mode = EPOLLIN;
-}
-
 void Signal::clear()
 {
     uint64_t count;

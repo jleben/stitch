@@ -4,11 +4,11 @@ project(concurrency)
 
 set(sources
     linux/events.cpp
-    linux/waiter.cpp
+    #linux/waiter.cpp
     linux/signal.cpp
-    linux/timer.cpp
-    linux/file_event.cpp
-    linux/file.cpp
+    #linux/timer.cpp
+    #linux/file_event.cpp
+    #linux/file.cpp
 )
 
 add_library(concurrency SHARED ${sources})
