@@ -6,9 +6,10 @@ class Queue
 {
 public:
     virtual ~Queue() {}
+    virtual bool full() = 0;
     virtual bool empty() = 0;
-    virtual void push(const T &) = 0;
-    virtual T pop() = 0;
+    virtual bool push(const T &) = 0;
+    virtual bool pop(T &) = 0;
 };
 
 }

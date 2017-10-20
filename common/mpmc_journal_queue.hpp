@@ -43,19 +43,24 @@ public:
         d_worker.join();
     }
 
+    bool full() override
+    {
+        return d_writable < 1;
+    }
+
     bool empty() override
     {
         return d_readable < 1;
     }
 
-    void push(const T & value) override
+    bool push(const T & value) override
     {
         int writable = d_writable.fetch_sub(1);
         bool ok = writable > 0;
         if (!ok)
         {
             d_writable.fetch_add(1);
-            throw std::out_of_range("Full.");
+            return false;
         }
 
         int pos = d_head.fetch_add(1) & d_wrap_mask;
@@ -65,27 +70,29 @@ public:
         d_journal[pos] = true;
 
         d_io_event.notify();
+
+        return true;
     }
 
-    T pop() override
+    bool pop(T & value) override
     {
         int readable = d_readable.fetch_sub(1);
         bool ok = readable > 0;
         if (!ok)
         {
             d_readable.fetch_add(1);
-            throw std::out_of_range("Empty.");
+            return false;
         }
 
         int pos = d_tail.fetch_add(1) & d_wrap_mask;
         d_tail.fetch_and(d_wrap_mask);
 
-        T value = d_data[pos];
+        value = d_data[pos];
         d_journal[pos] = false;
 
         d_io_event.notify();
 
-        return value;
+        return true;
     }
 
     Signal & event() { return d_public_io_event; }
@@ -100,18 +107,24 @@ private:
     {
         while(!d_quit)
         {
+            bool changed = false;
+
             while(d_journal[d_head_probe])
             {
                 d_head_probe = (d_head_probe + 1) & d_wrap_mask;
                 d_readable.fetch_add(1);
+                changed = true;
             }
             while(d_tail_probe != d_head_probe && !d_journal[d_tail_probe])
             {
                 d_tail_probe = (d_tail_probe + 1) & d_wrap_mask;
                 d_writable.fetch_add(1);
+                changed = true;
             }
 
-            d_public_io_event.notify();
+            if (changed)
+                d_public_io_event.notify();
+
             d_io_event.wait();
         }
     }

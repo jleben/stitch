@@ -24,7 +24,8 @@ bool test()
             while(q.empty())
                 q.event().wait();
 
-            int v = q.pop();
+            int v;
+            q.pop(v);
             test.assert("Popped " + to_string(v), v == i);
         }
     }
