@@ -23,3 +23,5 @@ make_test(test-rt-stream rt_stream_test.cpp)
 make_test(test-stream stream_test.cpp)
 
 make_test(test-mpmc-journal-queue mpmc_journal_queue_test.cpp)
+
+make_test(test-stream-gen test_stream_gen.cpp)
