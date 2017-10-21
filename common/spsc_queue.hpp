@@ -1,6 +1,13 @@
 #include "queue.hpp"
+#include "../linux/signal.h"
+
+#include <atomic>
+#include <vector>
 
 namespace Reactive {
+
+using std::vector;
+using std::atomic;
 
 // FIXME: Relax memory ordering constraints
 
@@ -8,32 +15,50 @@ template <typename T>
 class SPSC_Queue : public Queue<T>
 {
 public:
-    SPSC_Queue(int size):
-        d_data(size) {}
+    SPSC_Queue(int capacity): d_data(capacity + 1) {}
+
+    static bool is_lockfree()
+    {
+        return ATOMIC_INT_LOCK_FREE;
+    }
+
+    int capacity() const
+    {
+        return (int) d_data.size()-1;
+    }
+
+    bool full() override
+    {
+        return !writable_size();
+    }
 
     bool empty() override
     {
         return !readable_size();
     }
 
-    void push(const T & value) override
+    bool push(const T & value) override
     {
         if (!writable_size())
-            throw std::out_of_range("Full.");
+            return false;
 
         d_data[d_write_pos] = value;
         advance_write(1);
+        d_signal.notify();
+        return true;
     }
 
-    T pop() override
+    bool pop(T & value) override
     {
         if (!readable_size())
-            throw std::out_of_range("Empty.");
+            return false;
 
-        T value = d_data[d_read_pos];
+        value = d_data[d_read_pos];
         advance_read(1);
-        return value;
+        return true;
     }
+
+    Signal & write_event() { return d_signal; }
 
 private:
     int readable_size() const
@@ -73,6 +98,11 @@ private:
     {
         d_read_pos = (d_read_pos + count) % d_data.size();
     }
+
+    atomic<int> d_write_pos { 0 };
+    atomic<int> d_read_pos { 0 };
+    vector<T> d_data;
+    Signal d_signal;
 };
 
 }
