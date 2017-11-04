@@ -5,9 +5,9 @@ Currently, only the essential queue operations (push and pop) are wait-free, but
 
 ## Wait-free queues
 
-- SPSC_Queue: A single-producer-single-consumer queue. Most efficient.
-- MPMC_Journal_Queue: A multi-producer-multi-consumer queue.
-- MPSC_Journal_Queue: A multi-producer-single-consumer queue. More efficient than the MPMC queue.
+- `SPSC_Queue`: A single-producer-single-consumer queue. Most efficient.
+- `MPMC_Journal_Queue`: A multi-producer-multi-consumer queue.
+- `MPSC_Journal_Queue`: A multi-producer-single-consumer queue. More efficient than the MPMC queue.
 
 All queues have the same interface, they only differ in how many producer and consumer threads can use them at the same time.
 
@@ -112,10 +112,10 @@ Example:
 An interface for waiting on multiple events. Events are provided by:
 
 - Queue classes (presented above)
-- Timer class (single-shot or periodic timer)
-- File_Event class (from any file descriptor)
-- File class (high-level interface to open, read and write files in the filesystem)
-- Signal class (internally generated events)
+- `Timer` class (single-shot or periodic timer)
+- `File_Event` class (from any file descriptor)
+- `File` class (high-level interface to open, read and write files in the filesystem)
+- `Signal` class (internally generated events)
 
 The implementation is specific to the operating system. This is currently only implemented for Linux.
 
