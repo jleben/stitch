@@ -58,7 +58,7 @@ public:
         return true;
     }
 
-    Signal & write_event() { return d_signal; }
+    Event write_event() { return d_signal.event(); }
 
 private:
     int readable_size() const

@@ -107,7 +107,7 @@ bool test_multi_thread()
         for (int i = 0; i < 7; ++i)
         {
             while (q.empty())
-                q.write_event().wait();
+                wait(q.write_event());
 
             int v;
             bool ok = q.pop(v);

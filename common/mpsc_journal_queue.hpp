@@ -85,7 +85,7 @@ public:
         return true;
     }
 
-    Signal & event() { return d_public_io_event; }
+    Event event() { return d_public_io_event.event(); }
 
 private:
     int next_power_of_two(int value)
