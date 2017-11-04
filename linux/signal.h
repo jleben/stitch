@@ -17,11 +17,6 @@ public:
 
     Event event();
 
-    Event_Stream stream(Event_Reactor & reactor)
-    {
-        return reactor.add(event());
-    }
-
 private:
     void clear();
 

@@ -60,7 +60,7 @@ bool test_subscribe()
 
     int one_count = 0;
 
-    t1.stream(r).subscribe([&](){
+    r.subscribe(t1.event(), [&](){
         ++one_count;
         cout << time_since(start) << " One" << endl;
     });
@@ -68,7 +68,7 @@ bool test_subscribe()
     int reps = 3;
     int two_count = 0;
 
-    t2.stream(r).subscribe([&](){
+    r.subscribe(t2.event(), [&](){
         ++two_count;
         cout << time_since(start) << " Two" << endl;
 
@@ -123,12 +123,12 @@ bool test_stop()
 
     Event_Reactor r;
 
-    t1.stream(r).subscribe([&](){
+    r.subscribe(t1.event(), [&](){
         cout << time_since(start) << endl;
         cout << "Not OK" << endl;
     });
 
-    t2.stream(r).subscribe([&](){
+    r.subscribe(t2.event(), [&](){
         cout << time_since(start) << endl;
         cout << "OK" << endl;
     });

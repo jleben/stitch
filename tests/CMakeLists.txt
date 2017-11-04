@@ -27,5 +27,3 @@ make_test(test-mpmc-journal-queue mpmc_journal_queue_test.cpp)
 make_test(test-mpsc-journal-queue test_mpsc_journal_queue.cpp)
 
 make_test(test-streams test_streams.cpp)
-
-make_test(test-stream-gen test_stream_gen.cpp)

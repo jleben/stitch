@@ -43,7 +43,7 @@ bool test_wait()
     return test.success();
 }
 
-bool test_stream()
+bool test_subscribe()
 {
     Test test;
 
@@ -51,7 +51,7 @@ bool test_stream()
 
     Signal signal;
     int count = 0;
-    signal.stream(reactor).subscribe([&](){ ++count; });
+    reactor.subscribe(signal.event(), [&](){ ++count; });
 
     thread t1([&]()
     {
@@ -77,7 +77,7 @@ int main(int argc, char * argv[])
 {
     Test_Set t = {
         { "wait", test_wait },
-        { "stream", test_stream },
+        { "subscribe", test_subscribe },
     };
 
     return Testing::run(t, argc, argv);

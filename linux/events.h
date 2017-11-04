@@ -24,46 +24,13 @@ public:
     function<void()> clear;
 };
 
-// FIXME: Reactive::wait is not very useful on its own,
-// because user must manually clear Signal, Timer...
 void wait(const Event &);
-
-/*
-"Stream" concept:
-
-A class with:
- - template <typename T> void subscribe(T handler)
-
-Should not cause undefined behavior when destroyed after subscribing.
-Therfore, a stream derived form another stream should probably have that
-stream as a member.
-*/
-
-/*
-Class Event_Stream:
-Satisfies the "Stream" concept.
-Can be used until the Event_Reactor that it comes from is destroyed.
-*/
-
-class Event_Stream
-{
-    friend class Event_Reactor;
-    using Callback = function<void()>;
-
-public:
-    template <typename T>
-    void subscribe(T handler)
-    {
-        callbacks->push_back(handler);
-    }
-
-private:
-    list<Callback> * callbacks;
-};
 
 class Event_Reactor
 {
 public:
+    using Callback = function<void()>;
+
     enum Mode
     {
         NoWait,
@@ -74,7 +41,7 @@ public:
     Event_Reactor();
     ~Event_Reactor();
 
-    Event_Stream add(const Event & event);
+    void subscribe(const Event & event, Callback);
     void run(Mode = NoWait);
     void quit();
 
@@ -85,7 +52,7 @@ private:
     struct Event_Data
     {
         function<void()> clear;
-        list<Event_Stream::Callback> cb;
+        Callback cb;
     };
 
     bool d_running = false;
