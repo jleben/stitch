@@ -1,4 +1,7 @@
-This project provides basic utilities for asynchronous (reactive) communication between threads.
+This project provides basic building blocks for **asynchronous (reactive) communication** between threads. One could use this to implement an Actor framework, like [CAF](https://actor-framework.org/), but we believe the classes here are more primitive, lean and essential and allow building other forms of thread coordination.
+
+The goal of this project is also to provide all features with wait-free, or at least lock-free **progress guarantees**, so as to support real-time applications. This is in contrast to typical reactive frameworks which do not mention progress guarantees.
+Currently, only the essential queue operations (push and pop) are wait-free, but work is under way on improving progress guarantees of other operations.
 
 ## Wait-free queues
 
