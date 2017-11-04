@@ -11,7 +11,7 @@ Currently, only the essential queue operations (push and pop) are wait-free, but
 
 All queues have the same interface, they only differ in how many producer and consumer threads can use them at the same time.
 
-Examples
+Example:
 
     #include "common/spsc_queue.hpp"
     #include <thread>
