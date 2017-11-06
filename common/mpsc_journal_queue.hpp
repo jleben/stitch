@@ -27,7 +27,7 @@ public:
         d_data(next_power_of_two(size)),
         d_journal(d_data.size()),
         d_wrap_mask(d_data.size() - 1),
-        d_writable(d_data.size() - 1)
+        d_writable(d_data.size())
     {
         for (auto & val : d_journal)
             val = false;
