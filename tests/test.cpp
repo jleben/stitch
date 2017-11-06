@@ -15,7 +15,7 @@ int main(int argc, char * argv[])
     Testing::Test_Set tests = {
         { "spsc-queue", spsc_queue_tests() },
         { "mpsc-queue", mpsc_queue_tests() },
-        { "mpmc-queue", mpsc_queue_tests() },
+        { "mpmc-queue", mpmc_queue_tests() },
         { "stream", stream_tests() },
         { "signal", signal_tests() },
         { "timer", timer_tests() },
