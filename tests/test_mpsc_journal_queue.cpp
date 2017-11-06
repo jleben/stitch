@@ -4,7 +4,7 @@
 using namespace Reactive;
 using namespace std;
 
-bool test()
+static bool test()
 {
     Testing::Test test;
 
@@ -37,12 +37,9 @@ bool test()
     return test.success();
 }
 
-int main(int argc, char * argv[])
+Testing::Test_Set mpsc_queue_tests()
 {
-    Testing::Test_Set tests = {
+    return {
         { "test", test }
     };
-
-    return Testing::run(tests, argc, argv);
 }
-

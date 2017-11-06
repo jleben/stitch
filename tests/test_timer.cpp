@@ -9,7 +9,7 @@ using namespace std;
 using namespace Reactive;
 using namespace Testing;
 
-bool test_single_shot()
+static bool test_single_shot()
 {
     Timer t;
     t.start(chrono::milliseconds(1250), false);
@@ -23,7 +23,7 @@ bool test_single_shot()
     return true;
 }
 
-bool test_repeated()
+static bool test_repeated()
 {
     Test test;
 
@@ -44,7 +44,7 @@ bool test_repeated()
     return test.success();
 }
 
-bool test_subscribe()
+static bool test_subscribe()
 {
     Test t;
 
@@ -83,7 +83,7 @@ bool test_subscribe()
     return t.success();
 }
 
-bool test_restart()
+static bool test_restart()
 {
     Test test;
 
@@ -108,7 +108,7 @@ bool test_restart()
     return test.success();
 }
 
-bool test_stop()
+static bool test_stop()
 {
     Test test;
 
@@ -138,15 +138,13 @@ bool test_stop()
     return test.success();
 }
 
-int main(int argc, char * argv[])
+Test_Set timer_tests()
 {
-    Test_Set t = {
+    return {
         { "Single Shot", test_single_shot },
         { "Repeated", test_repeated },
         { "Subscribe", test_subscribe },
         { "Restart", test_restart },
         { "Stop", test_stop },
     };
-
-    return Testing::run(t, argc, argv);
 }

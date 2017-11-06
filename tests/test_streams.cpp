@@ -6,7 +6,7 @@ using namespace Testing;
 using namespace std;
 
 
-bool test_push_unconnected()
+static bool test_push_unconnected()
 {
     Stream_Producer<int> p;
 
@@ -16,7 +16,7 @@ bool test_push_unconnected()
     return true;
 }
 
-bool test_pop_unconnected()
+static bool test_pop_unconnected()
 {
     Test test;
 
@@ -32,7 +32,7 @@ bool test_pop_unconnected()
     return test.success();
 }
 
-bool test_connection()
+static bool test_connection()
 {
     Test test;
 
@@ -77,7 +77,7 @@ bool test_connection()
     return test.success();
 }
 
-bool test_basic()
+static bool test_basic()
 {
     Test test;
 
@@ -124,7 +124,7 @@ bool test_basic()
 }
 
 
-bool test_exceeding_capacity()
+static bool test_exceeding_capacity()
 {
     Test test;
 
@@ -150,7 +150,7 @@ bool test_exceeding_capacity()
     return test.success();
 }
 
-bool test_one_to_many()
+static bool test_one_to_many()
 {
     Test test;
 
@@ -191,7 +191,7 @@ bool test_one_to_many()
     return test.success();
 }
 
-bool test_many_to_one()
+static bool test_many_to_one()
 {
     Test test;
 
@@ -229,11 +229,9 @@ bool test_many_to_one()
     return test.success();
 }
 
-
-
-int main(int argc, char * argv[])
+Test_Set stream_tests()
 {
-    Test_Set s = {
+    return {
         { "push unconnected", test_push_unconnected },
         { "pop unconnected", test_pop_unconnected },
         { "connection", test_connection },
@@ -242,7 +240,4 @@ int main(int argc, char * argv[])
         { "one to many", test_one_to_many },
         { "many to one", test_many_to_one },
     };
-
-    return run(s, argc, argv);
 }
-

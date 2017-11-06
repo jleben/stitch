@@ -14,7 +14,7 @@ using namespace Reactive;
 using namespace std;
 using namespace Testing;
 
-bool test_basic()
+static bool test_basic()
 {
     Test test;
 
@@ -101,7 +101,7 @@ bool test_basic()
     return test.success();
 }
 
-bool test_blocking_read()
+static bool test_blocking_read()
 {
     Test test;
 
@@ -186,7 +186,7 @@ bool test_blocking_read()
     return test.success();
 }
 
-bool test_nonblocking_read()
+static bool test_nonblocking_read()
 {
     Test test;
 
@@ -281,13 +281,11 @@ bool test_nonblocking_read()
     return test.success();
 }
 
-int main(int argc, char * argv[])
+Test_Set file_tests()
 {
-    Test_Set t = {
+    return {
         { "basic", test_basic },
         { "blocking read", test_blocking_read },
         { "nonblocking read", test_nonblocking_read },
     };
-
-    return Testing::run(t, argc, argv);
 }

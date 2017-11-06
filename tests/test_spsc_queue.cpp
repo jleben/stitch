@@ -7,14 +7,14 @@
 using namespace Reactive;
 using namespace std;
 
-bool test_is_lockfree()
+static bool test_is_lockfree()
 {
     Testing::Test test;
     test.assert("Lockfree.", SPSC_Queue<int>::is_lockfree());
     return test.success();
 }
 
-bool test_full_empty()
+static bool test_full_empty()
 {
     Testing::Test test;
 
@@ -50,7 +50,7 @@ bool test_full_empty()
     return test.success();
 }
 
-bool test_single_thread()
+static bool test_single_thread()
 {
     Testing::Test test;
 
@@ -81,7 +81,7 @@ bool test_single_thread()
     return test.success();
 }
 
-bool test_multi_thread()
+static bool test_multi_thread()
 {
     Testing::Test test;
 
@@ -125,15 +125,12 @@ bool test_multi_thread()
     return test.success();
 }
 
-int main(int argc, char * argv[])
+Testing::Test_Set spsc_queue_tests()
 {
-    Testing::Test_Set tests = {
+    return {
         { "lockfree", test_is_lockfree },
         { "test_full_empty", test_full_empty },
         { "test_single_thread", test_single_thread },
         { "test_multi_thread", test_multi_thread }
     };
-
-    return Testing::run(tests, argc, argv);
 }
-

@@ -8,7 +8,7 @@ using namespace Reactive;
 using namespace std;
 using namespace Testing;
 
-bool test_wait()
+static bool test_wait()
 {
     Test test;
 
@@ -43,7 +43,7 @@ bool test_wait()
     return test.success();
 }
 
-bool test_subscribe()
+static bool test_subscribe()
 {
     Test test;
 
@@ -73,13 +73,10 @@ bool test_subscribe()
     return test.success();
 }
 
-int main(int argc, char * argv[])
+Test_Set signal_tests()
 {
-    Test_Set t = {
+    return {
         { "wait", test_wait },
         { "subscribe", test_subscribe },
     };
-
-    return Testing::run(t, argc, argv);
 }
-
