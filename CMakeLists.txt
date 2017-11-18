@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 project(concurrency)
 
@@ -12,5 +12,7 @@ set(sources
 )
 
 add_library(concurrency SHARED ${sources})
+
+set_property(TARGET concurrency PROPERTY CXX_STANDARD 14)
 
 add_subdirectory(tests)
