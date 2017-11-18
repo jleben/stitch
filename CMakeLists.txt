@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.1)
 project(concurrency)
 
 set(sources
+    data_structs/hazard_pointer.cpp
     linux/events.cpp
     #linux/waiter.cpp
     linux/signal.cpp

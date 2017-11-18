@@ -5,6 +5,7 @@ using namespace Testing;
 Test_Set spsc_queue_tests();
 Test_Set mpsc_queue_tests();
 Test_Set mpmc_queue_tests();
+Test_Set lockfree_set_tests();
 Test_Set stream_tests();
 Test_Set signal_tests();
 Test_Set timer_tests();
@@ -16,6 +17,7 @@ int main(int argc, char * argv[])
         { "spsc-queue", spsc_queue_tests() },
         { "mpsc-queue", mpsc_queue_tests() },
         { "mpmc-queue", mpmc_queue_tests() },
+        { "lockfree-set", lockfree_set_tests() },
         { "stream", stream_tests() },
         { "signal", signal_tests() },
         { "timer", timer_tests() },
