@@ -135,8 +135,19 @@ static bool stress()
             {
                 set.insert(i);
             }
-
-            for (int i = 0; i < 100; ++i)
+            for (int i = 50; i < 75; ++i)
+            {
+                set.remove(i);
+            }
+            for (int i = 99; i >= 75; --i)
+            {
+                set.remove(i);
+            }
+            for (int i = 49; i >= 25; --i)
+            {
+                set.remove(i);
+            }
+            for (int i = 0; i < 25; ++i)
             {
                 set.remove(i);
             }
