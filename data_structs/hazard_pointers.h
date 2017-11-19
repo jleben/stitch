@@ -16,10 +16,9 @@ using std::unordered_set;
 
 class Hazard_Pointers
 {
+public:
     static constexpr int K = 2;
     static constexpr int H = 100;
-
-public:
 
     template<typename T>
     static atomic<T*> & h(int i) { return reinterpret_cast<atomic<T*>&>(d_thread_record.d->h[i]); }

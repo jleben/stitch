@@ -28,17 +28,18 @@ static bool contains()
 
     test.assert("Set does not contain -1.", !set.contains(-1));
 
-    set.remove(4);
-    set.remove(5);
-    set.remove(3);
-    set.remove(7);
+    for (int i : { 0, 4, 5, 3, 7 })
+    {
+        bool ok = set.remove(i);
+        test.assert("Element " + to_string(i) + " removed.", ok);
+    }
 
-    for (int i : { 0, 1, 2, 6, 8, 9 })
+    for (int i : { 1, 2, 6, 8, 9 })
     {
         test.assert("Set contains " + to_string(i), set.contains(i));
     }
 
-    for (int i : { 3, 4, 5, 7 })
+    for (int i : { 0, 3, 4, 5, 7 })
     {
         test.assert("Set does not contain " + to_string(i), !set.contains(i));
     }
@@ -87,10 +88,11 @@ static bool iteration()
         }
     }
 
-    set.remove(4);
-    set.remove(5);
-    set.remove(3);
-    set.remove(7);
+    for (int i : { 0, 4, 5, 3, 7 })
+    {
+        bool ok = set.remove(i);
+        test.assert("Element " + to_string(i) + " removed.", ok);
+    }
 
     {
         vector<int> elements;
@@ -99,7 +101,7 @@ static bool iteration()
             elements.push_back(i);
         });
 
-        test.assert("Set size is 6.", elements.size() == 6);
+        test.assert("Set size is 5.", elements.size() == 5);
 
         unordered_set<int> unique_elements;
 
@@ -110,11 +112,71 @@ static bool iteration()
             test.assert("Element is unique.", is_unique);
         }
 
-        for (int i : { 0, 1, 2, 6, 8, 9 })
+        for (int i : { 1, 2, 6, 8, 9 })
         {
             test.assert("Set iterates over " + to_string(i), unique_elements.find(i) != unique_elements.end());
         }
     }
+
+    return test.success();
+}
+
+static bool reclamation()
+{
+    Test test;
+
+    static atomic<int> elem_count { 0 };
+
+    struct Element
+    {
+        int x;
+
+        Element(): Element(0) {}
+        Element(int x): x(x) { elem_count.fetch_add(1); }
+        Element(const Element & other): Element(other.x) {}
+        ~Element() { elem_count.fetch_sub(1); }
+        Element & operator=(const Element & other){ x = other.x; return *this; }
+        bool operator==(const Element & other) { return x == other.x; }
+    };
+
+    Lockfree::Set<Element> set;
+
+    for (int i = 0; i < 2 * Hazard_Pointers::H; ++i)
+    {
+        set.insert(i);
+        test.assert("Set contains " + to_string(i), set.contains(i));
+    }
+
+    // NOTE: There's always one additional element: the set's head.
+    test.assert("Element count " + to_string(elem_count)
+                + " = " + to_string(2*Hazard_Pointers::H + 1),
+                elem_count == 2 * Hazard_Pointers::H + 1);
+
+    thread t1([&]()
+    {
+        for (int i = 0; i < Hazard_Pointers::H; ++i)
+        {
+            int val = 2*i;
+            bool removed = set.remove(val);
+            test.assert("Element " + to_string(val) + " removed.", removed);
+        }
+    });
+
+    thread t2([&]()
+    {
+        for (int i = 0; i < Hazard_Pointers::H; ++i)
+        {
+            int val = 2*i + 1;
+            bool removed = set.remove(val);
+            test.assert("Element " + to_string(val) + " removed.", removed);
+        }
+    });
+
+    t1.join();
+    t2.join();
+
+    // NOTE: There's always one element: the set's head.
+    test.assert("Element count " + to_string(elem_count) + " = 1.", elem_count == 1);
 
     return test.success();
 }
@@ -200,6 +262,7 @@ Test_Set lockfree_set_tests()
     {
         { "contains", contains },
         { "iteration", iteration },
+        { "reclamation", reclamation },
         { "stress", stress },
     };
 }
