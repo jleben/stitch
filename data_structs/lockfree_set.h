@@ -35,7 +35,7 @@ public:
     {
         std::lock_guard<mutex> lock(d_mux);
 
-        Node * n = &head;
+        Node * n = head.next;
         while(n)
         {
             if (n->value == value)
