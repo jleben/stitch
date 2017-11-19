@@ -73,6 +73,42 @@ public:
         return false;
     }
 
+
+    // Lockfree
+    // O(N)
+
+    bool contains(const T & value)
+    {
+        auto & h0 = Hazard_Pointers::h<Node>(0);
+        auto & h1 = Hazard_Pointers::h<Node>(1);
+
+        h0 = &head;
+
+        bool found = false;
+
+        while(!found)
+        {
+            Node * last = h0.load();
+            Node * current = last->next;
+            if (!current)
+                break;
+
+            // Make current safe, and make sure it's reachable
+            h1 = current;
+            if (last->next != current)
+                continue;
+
+            found = current->value == value;
+
+            // Forget last and make current the new last
+            h0 = h1.load();
+        }
+
+        h0 = h1 = nullptr;
+
+        return found;
+    }
+
     // Lockfree
     // O(N)
 
