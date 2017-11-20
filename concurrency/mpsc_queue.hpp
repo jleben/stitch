@@ -15,7 +15,7 @@ using std::atomic;
 // FIXME: Use atomic_flag instead of atomic<bool>
 
 template <typename T>
-class MPSC_Journal_Queue : public Queue<T>
+class MPSC_Queue : public Queue<T>
 {
 public:
     static bool is_lockfree()
@@ -23,7 +23,7 @@ public:
         return ATOMIC_INT_LOCK_FREE && ATOMIC_BOOL_LOCK_FREE;
     }
 
-    MPSC_Journal_Queue(int size):
+    MPSC_Queue(int size):
         d_data(next_power_of_two(size)),
         d_journal(d_data.size()),
         d_wrap_mask(d_data.size() - 1),
@@ -35,7 +35,7 @@ public:
             val = false;
     }
 
-    ~MPSC_Journal_Queue()
+    ~MPSC_Queue()
     {}
 
     bool full() override

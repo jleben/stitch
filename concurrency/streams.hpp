@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mpsc_journal_queue.hpp"
+#include "mpsc_queue.hpp"
 
 #include <mutex>
 #include <list>
@@ -142,7 +142,7 @@ private:
 
     mutex d_mutex;
     list<Stream_Producer<T>*> d_sources;
-    MPSC_Journal_Queue<T> d_queue;
+    MPSC_Queue<T> d_queue;
 };
 
 template <typename T>

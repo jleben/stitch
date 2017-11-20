@@ -11,8 +11,8 @@ endfunction()
 set(test_sources
     test.cpp
     test_spsc_queue.cpp
-    test_mpsc_journal_queue.cpp
-    test_mpmc_journal_queue.cpp
+    test_mpsc_queue.cpp
+    test_mpmc_queue.cpp
     test_lockfree_set.cpp
     test_streams.cpp
     test_signal.cpp

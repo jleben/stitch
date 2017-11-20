@@ -1,4 +1,4 @@
-#include "../concurrency/mpsc_journal_queue.hpp"
+#include "../concurrency/mpsc_queue.hpp"
 #include "../testing/testing.h"
 
 using namespace Reactive;
@@ -8,9 +8,9 @@ static bool test()
 {
     Testing::Test test;
 
-    test.assert("Lockfree.", MPSC_Journal_Queue<int>::is_lockfree());
+    test.assert("Lockfree.", MPSC_Queue<int>::is_lockfree());
 
-    MPSC_Journal_Queue<int> q (10);
+    MPSC_Queue<int> q (10);
 
     for (int rep = 0; rep < 3; ++rep)
     {
@@ -41,7 +41,7 @@ static bool stress_test()
 {
     Testing::Test test;
 
-    MPSC_Journal_Queue<int> q(50);
+    MPSC_Queue<int> q(50);
 
     atomic<bool> quit { false };
 
