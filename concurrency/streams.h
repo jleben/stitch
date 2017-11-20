@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mpsc_queue.hpp"
+#include "mpsc_queue.h"
 
 #include <mutex>
 #include <list>

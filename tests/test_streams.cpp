@@ -1,4 +1,4 @@
-#include "../concurrency/streams.hpp"
+#include "../concurrency/streams.h"
 #include "../testing/testing.h"
 
 using namespace Reactive;

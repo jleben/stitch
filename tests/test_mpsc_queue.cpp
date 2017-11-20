@@ -1,4 +1,4 @@
-#include "../concurrency/mpsc_queue.hpp"
+#include "../concurrency/mpsc_queue.h"
 #include "../testing/testing.h"
 
 using namespace Reactive;
