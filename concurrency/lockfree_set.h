@@ -30,6 +30,11 @@ public:
     // Blocking
     // O(N)
 
+    bool empty() const
+    {
+        return head.next == nullptr;
+    }
+
     void insert(const T & value)
     {
         std::lock_guard<mutex> lock(d_mux);

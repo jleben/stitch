@@ -10,6 +10,21 @@ using namespace Testing;
 using namespace Reactive;
 using namespace std;
 
+static bool empty()
+{
+    Test test;
+
+    Set<int> set;
+
+    test.assert("Set empty.", set.empty());
+
+    set.insert(1);
+
+    test.assert("Set not empty.", !set.empty());
+
+    return test.success();
+}
+
 static bool contains()
 {
     Test test;
@@ -260,6 +275,7 @@ Test_Set lockfree_set_tests()
 {
     return
     {
+        { "empty", empty },
         { "contains", contains },
         { "iteration", iteration },
         { "reclamation", reclamation },
