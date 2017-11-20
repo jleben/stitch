@@ -3,13 +3,12 @@ cmake_minimum_required(VERSION 3.1)
 project(concurrency)
 
 set(sources
-    data_structs/hazard_pointer.cpp
-    linux/events.cpp
-    #linux/waiter.cpp
-    linux/signal.cpp
-    linux/timer.cpp
-    linux/file_event.cpp
-    linux/file.cpp
+    concurrency/hazard_pointer.cpp
+    concurrency/linux/events.cpp
+    concurrency/linux/signal.cpp
+    concurrency/linux/timer.cpp
+    concurrency/linux/file_event.cpp
+    concurrency/linux/file.cpp
 )
 
 add_library(concurrency SHARED ${sources})

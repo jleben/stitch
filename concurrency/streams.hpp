@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../common/mpsc_journal_queue.hpp"
+#include "mpsc_journal_queue.hpp"
 
 #include <mutex>
 #include <list>

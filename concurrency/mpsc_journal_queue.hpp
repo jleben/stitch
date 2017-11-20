@@ -1,5 +1,5 @@
 #include "queue.hpp"
-#include "../linux/signal.h"
+#include "signal.h"
 
 #include <cmath>
 #include <atomic>
@@ -29,6 +29,8 @@ public:
         d_wrap_mask(d_data.size() - 1),
         d_writable(d_data.size())
     {
+        //printf("Size = %d\n", (int) d_data.size());
+
         for (auto & val : d_journal)
             val = false;
     }
@@ -59,6 +61,8 @@ public:
         int pos = d_head.fetch_add(1) & d_wrap_mask;
         d_head.fetch_and(d_wrap_mask);
 
+        //printf("Writing at %d\n", pos);
+
         d_data[pos] = value;
         d_journal[pos] = true;
 
@@ -75,6 +79,8 @@ public:
 
         int pos = d_tail;
         d_tail = (d_tail + 1) & d_wrap_mask;
+
+        //printf("Reading at %d\n", pos);
 
         value = d_data[pos];
         d_journal[pos] = false;

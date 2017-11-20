@@ -1,5 +1,5 @@
 #include "queue.hpp"
-#include "../linux/signal.h"
+#include "signal.h"
 
 #include <cmath>
 #include <atomic>

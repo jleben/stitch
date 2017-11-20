@@ -1,4 +1,4 @@
-#include "../data_structs/lockfree_set.h"
+#include "../concurrency/lockfree_set.h"
 #include "../testing/testing.h"
 
 #include <unordered_set>

@@ -1,4 +1,4 @@
-#include "../common/mpmc_journal_queue.hpp"
+#include "../concurrency/mpmc_journal_queue.hpp"
 #include "../testing/testing.h"
 
 using namespace Reactive;

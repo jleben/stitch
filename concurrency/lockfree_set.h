@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../data_structs/hazard_pointers.h"
+#include "hazard_pointers.h"
 
 #include <atomic>
 #include <mutex>
