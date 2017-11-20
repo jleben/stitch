@@ -6,14 +6,14 @@ Currently, only the essential queue operations (push and pop) are wait-free, but
 ## Wait-free queues
 
 - `SPSC_Queue`: A single-producer-single-consumer queue. Most efficient.
-- `MPMC_Journal_Queue`: A multi-producer-multi-consumer queue.
-- `MPSC_Journal_Queue`: A multi-producer-single-consumer queue. More efficient than the MPMC queue.
+- `MPMC_Queue`: A multi-producer-multi-consumer queue.
+- `MPSC_Queue`: A multi-producer-single-consumer queue. More efficient than the MPMC queue.
 
 All queues have the same interface, they only differ in how many producer and consumer threads can use them at the same time.
 
 Example:
 
-    #include "common/spsc_queue.hpp"
+    #include "concurrency/spsc_queue.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
@@ -61,14 +61,13 @@ Each consumer has a MPSC queue from which it pops and to which producers push.
 
 Example:
 
-    #include "common/streams.hpp"
+    #include "concurrency/streams.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
 
     using namespace Reactive;
     using namespace std;
-
 
     int main()
     {
@@ -121,9 +120,9 @@ The implementation is specific to the operating system. This is currently only i
 
 Example:
 
-    #include "linux/events.h"
-    #include "linux/timer.h"
-    #include "common/spsc_queue.hpp"
+    #include "concurrency/events.h"
+    #include "concurrency/timer.h"
+    #include "concurrency/spsc_queue.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
