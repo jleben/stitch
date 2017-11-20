@@ -5,8 +5,7 @@
 #include <atomic>
 #include <mutex>
 
-namespace Concurrent {
-namespace Lockfree {
+namespace Reactive {
 
 using std::atomic;
 using std::mutex;
@@ -141,7 +140,5 @@ public:
         h0 = h1 = nullptr;
     }
 };
-
-}
 
 }

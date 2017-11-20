@@ -6,7 +6,7 @@
 #include <array>
 #include <unordered_set>
 
-namespace Concurrent {
+namespace Reactive {
 
 using std::atomic;
 using std::list;

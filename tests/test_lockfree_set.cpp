@@ -7,14 +7,14 @@
 #include <sstream>
 
 using namespace Testing;
-using namespace Concurrent;
+using namespace Reactive;
 using namespace std;
 
 static bool contains()
 {
     Test test;
 
-    Lockfree::Set<int> set;
+    Set<int> set;
 
     for (int i = 0; i < 10; ++i)
     {
@@ -51,7 +51,7 @@ static bool iteration()
 {
     Test test;
 
-    Lockfree::Set<int> set;
+    Set<int> set;
 
     for (int i = 0; i < 10; ++i)
     {
@@ -139,7 +139,7 @@ static bool reclamation()
         bool operator==(const Element & other) { return x == other.x; }
     };
 
-    Lockfree::Set<Element> set;
+    Set<Element> set;
 
     for (int i = 0; i < 2 * Hazard_Pointers::H; ++i)
     {
@@ -185,7 +185,7 @@ static bool stress()
 {
     Test test;
 
-    Lockfree::Set<int> set;
+    Set<int> set;
 
     atomic<bool> done;
 
