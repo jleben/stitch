@@ -1,6 +1,6 @@
 This project provides basic building blocks for **asynchronous (reactive) communication** between threads. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux). It has the ambition to be suitable for **real-time applications**: it aims to provide wait-free or at least lock-free progress guarantees.
 
-It is similar in purpose to the Microsoft's Parallel Patterns Library which is limited to Windows, and actor frameworks like [CAF](https://actor-framework.org/) which provide higher-level abstractions.
+See the [comparison with related software](#comparison-with-related-software) below.
 
 ## Queues
 
@@ -117,7 +117,7 @@ An interface for waiting on multiple events. Events are provided by:
 
 The implementation is specific to the operating system. This is currently only implemented for Linux.
 
-Example:
+Example with callbacks:
 
     #include "concurrency/events.h"
     #include "concurrency/timer.h"
@@ -169,3 +169,29 @@ Example:
 
         t1.join();
     }
+
+
+## Comparison with Related Software
+
+These are some of our observations about related software which give reasons for the existence of this library. Please contact the authors of this text if any of this is incorrect or if something else should be added.
+
+### Microsoft's Parallel Patterns Library
+
+- Limited to Windows.
+- No file events.
+- No progress guarantees.
+
+### C++ Actor Framework (CAF)
+
+[Website](https://actor-framework.org/)
+
+- A higher-level interface (the actor model) instead of basic building blocks.
+- Does not specify detailed progress guarantees for each method of each class.
+
+### libevent
+
+[Website](http://libevent.org/)
+
+- C instead of C++ (There exist C++ wrappers though).
+- Does not provide a direct interface for waiting on events like our `wait(event)`.
+- Does not provide a direct interface for internally generated events like our `Signal` class.
