@@ -2,6 +2,7 @@
 
 #include "mpsc_queue.h"
 #include "lockfree_set.h"
+#include "events.h"
 
 #include <mutex>
 #include <list>
@@ -152,6 +153,11 @@ public:
     bool has_connections()
     {
         return !d->sources.empty();
+    }
+
+    Event receive_event()
+    {
+        return d->queue.event();
     }
 
 private:
