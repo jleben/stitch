@@ -189,7 +189,7 @@ void disconnect(Stream_Producer<T> & source, Stream_Consumer<T> & sink)
 // Thread safe against:
 // - Itself
 // - All methods of Stream_Producer<T> and Stream_Consumer<T> other than the destructors.
-// Blocking.
+// Lock-free.
 // Time O(N).
 
 template <typename T>
