@@ -1,13 +1,12 @@
-This project provides basic building blocks for **asynchronous (reactive) communication** between threads. One could use this to implement an Actor framework, like [CAF](https://actor-framework.org/), but we believe the classes here are more primitive, lean and essential and allow building other forms of thread coordination.
+This project provides basic building blocks for **asynchronous (reactive) communication** between threads. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux). It has the ambition to be suitable for **real-time applications**: it aims to provide wait-free or at least lock-free progress guarantees.
 
-The goal of this project is also to provide all features with wait-free, or at least lock-free **progress guarantees**, so as to support real-time applications. This is in contrast to typical reactive frameworks which do not mention progress guarantees.
-Currently, only the essential queue operations (push and pop) are wait-free, but work is under way on improving progress guarantees of other operations.
+It is similar in purpose to the Microsoft's Parallel Patterns Library which is limited to Windows, and actor frameworks like [CAF](https://actor-framework.org/) which provide higher-level abstractions.
 
-## Wait-free queues
+## Queues
 
-- `SPSC_Queue`: A single-producer-single-consumer queue. Most efficient.
-- `MPMC_Queue`: A multi-producer-multi-consumer queue.
-- `MPSC_Queue`: A multi-producer-single-consumer queue. More efficient than the MPMC queue.
+- `SPSC_Queue`: A wait-free single-producer-single-consumer queue. Most efficient.
+- `MPMC_Queue`: A wait-free multi-producer-multi-consumer queue.
+- `MPSC_Queue`: A wait-free multi-producer-single-consumer queue. More efficient than the MPMC queue.
 
 All queues have the same interface, they only differ in how many producer and consumer threads can use them at the same time.
 
@@ -53,7 +52,7 @@ Example:
 
 ## Streams
 
-Stream producers and consumers connected via queues.
+Lock-free stream producers and consumers connected via queues in many-to-many patterns.
 
 Each producer can be connected to multiple consumers and the other way around.
 
