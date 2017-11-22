@@ -69,8 +69,6 @@ int File::open_file(const string & path, File::Access access, bool blocking)
 
 int File::read(void *dst, int count)
 {
-    // FIXME: report errors
-
     int read_count = 0;
 
     while(read_count < count)
@@ -78,8 +76,15 @@ int File::read(void *dst, int count)
         int result = ::read(d_fd, dst, count);
         if (result == -1)
         {
-            if (errno != EINTR)
+            switch(errno)
+            {
+            case EAGAIN:
                 break;
+            case EINTR:
+                continue;
+            default:
+                throw std::runtime_error(string("'read' failed: ") + strerror(errno));
+            }
         }
         else if (result > 0)
         {
@@ -97,8 +102,6 @@ int File::read(void *dst, int count)
 
 int File::write(void *src, int count)
 {
-    // FIXME: report errors
-
     int write_count = 0;
 
     while(write_count < count)
@@ -106,8 +109,15 @@ int File::write(void *src, int count)
         int result = ::write(d_fd, src, count);
         if (result == -1)
         {
-            if (errno != EINTR)
+            switch(errno)
+            {
+            case EAGAIN:
                 break;
+            case EINTR:
+                continue;
+            default:
+                throw std::runtime_error(string("'read' failed: ") + strerror(errno));
+            }
         }
         else if (result > 0)
         {

@@ -18,10 +18,13 @@ void wait(const Event & e)
     data.fd = e.fd;
     data.events = e.poll_events;
 
-    int result = poll(&data, 1, -1);
+    int result;
+
+    do { result = poll(&data, 1, -1); }
+    while(result == -1 && errno == EINTR);
 
     if (result == -1)
-        throw std::runtime_error("Failed to wait for event.");
+        throw std::runtime_error("'poll' failed.");
 
     e.clear();
 }
@@ -29,6 +32,10 @@ void wait(const Event & e)
 Event_Reactor::Event_Reactor()
 {
     d_epoll_fd = epoll_create(1);
+
+    if (d_epoll_fd == -1)
+        throw std::runtime_error("'epoll_create' failed.");
+
     d_ready_events.resize(5);
 }
 
@@ -49,7 +56,11 @@ void Event_Reactor::subscribe(const Event & event, Callback cb)
     options.events = event.epoll_events;
     options.data.ptr = &watched_event;
 
-    epoll_ctl(d_epoll_fd, EPOLL_CTL_ADD, event.fd, &options);
+    if (epoll_ctl(d_epoll_fd, EPOLL_CTL_ADD, event.fd, &options) == -1)
+    {
+        d_watched_events.pop_back();
+        throw std::runtime_error("'epoll_ctl' failed.");
+    }
 }
 
 void Event_Reactor::run(Mode mode)
@@ -59,10 +70,14 @@ void Event_Reactor::run(Mode mode)
     do
     {
         int timeout = (mode == NoWait) ? 0 : -1;
-        int result = epoll_wait(d_epoll_fd, d_ready_events.data(), d_ready_events.size(), timeout);
+        int result;
+
+        do {
+            result = epoll_wait(d_epoll_fd, d_ready_events.data(), d_ready_events.size(), timeout);
+        } while (result == -1 && errno == EINTR);
 
         if (result < 0)
-            throw std::runtime_error("Failed epoll_wait.");
+            throw std::runtime_error("'epoll_wait' failed.");
 
         for (int i = 0; i < result; ++i)
         {

@@ -16,6 +16,8 @@ namespace Reactive {
 Signal::Signal()
 {
     d_fd = eventfd(0, EFD_NONBLOCK);
+    if (d_fd == -1)
+        throw std::runtime_error("'eventfd' failed.");
 }
 
 Signal::~Signal()
@@ -26,13 +28,19 @@ Signal::~Signal()
 void Signal::notify()
 {
     uint64_t count = 1;
-    write(d_fd, &count, sizeof(count));
+    int result;
+
+    do { result = write(d_fd, &count, sizeof(count)); }
+    while (result == -1 && errno == EINTR);
 }
 
 void Signal::clear()
 {
     uint64_t count;
-    read(d_fd, &count, sizeof(count));
+    int result;
+
+    do { result = read(d_fd, &count, sizeof(count)); }
+    while (result == -1 && errno == EINTR);
 }
 
 Event Signal::event()

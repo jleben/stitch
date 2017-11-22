@@ -15,6 +15,8 @@ namespace Reactive {
 Timer::Timer()
 {
     d_fd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+    if (d_fd == -1)
+        throw std::runtime_error("'timerfd_create' failed.");
 }
 
 Timer::~Timer()
@@ -62,7 +64,10 @@ void Timer::stop()
 void Timer::clear()
 {
     uint64_t count;
-    read(d_fd, &count, sizeof(count));
+    int result;
+
+    do { result = read(d_fd, &count, sizeof(count)); }
+    while (result == -1 && errno == EINTR);
 }
 
 Event Timer::event()
