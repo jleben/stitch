@@ -48,33 +48,34 @@ public:
         return true;
     }
 
-    template <typename F>
-    bool push(int count, F producer)
+    template <typename I>
+    bool push(int count, I input_start)
     {
         if (writable_size() < count)
             return false;
 
         int w = d_write_pos;
         int s = d_data.size();
+        I input = input_start;
 
         if (w + count > s)
         {
             int wrap_count = w + count - s;
-            for (; w < s; ++w)
+            for (; w < s; ++w, ++input)
             {
-                d_data[w] = producer();
+                d_data[w] = *input;
             }
-            for (w = 0; w < wrap_count; ++w)
+            for (w = 0; w < wrap_count; ++w, ++input)
             {
-                d_data[w] = producer();
+                d_data[w] = *input;
             }
         }
         else
         {
             int end = w + count;
-            for (; w < end; ++w)
+            for (; w < end; ++w, ++input)
             {
-                d_data[w] = producer();
+                d_data[w] = *input;
             }
         }
 
@@ -93,33 +94,34 @@ public:
         return true;
     }
 
-    template <typename F>
-    bool pop(int count, F consumer)
+    template <typename O>
+    bool pop(int count, O output_start)
     {
         if (readable_size() < count)
             return false;
 
         int r = d_read_pos;
         int s = d_data.size();
+        O output = output_start;
 
         if (r + count > s)
         {
             int wrap_count = r + count - s;
-            for (; r < s; ++r)
+            for (; r < s; ++r, ++output)
             {
-                consumer(d_data[r]);
+                *output = d_data[r];
             }
-            for (r = 0; r < wrap_count; ++r)
+            for (r = 0; r < wrap_count; ++r, ++output)
             {
-                consumer(d_data[r]);
+                *output = d_data[r];
             }
         }
         else
         {
             int end = r + count;
-            for (; r < end; ++r)
+            for (; r < end; ++r, ++output)
             {
-                consumer(d_data[r]);
+                *output = d_data[r];
             }
         }
 

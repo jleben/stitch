@@ -92,29 +92,34 @@ static bool test_bulk()
         int count = q.capacity() - 2;
 
         {
-            int i = 0;
-            bool pushed = q.push(count, [&](){ return i++; });
-            test.assert("Pushed " + to_string(count) + " elements.", pushed && i == count);
+            vector<int> data(count);
+            for(int i = 0; i < count; ++i)
+                data[i] = i;
+
+            bool pushed = q.push(count, data.begin());
+            test.assert("Pushed.", pushed);
         }
 
         test.assert("Queue is not empty.", !q.empty());
 
         {
-            int i = 0;
-            bool popped = q.pop(count, [&](int v)
-            {
-                test.assert("Got " + to_string(v), v == i);
-                ++i;
-            });
+            vector<int> data(count);
 
-            test.assert("Popped " + to_string(count) + " elements.", popped && i == count);
+            bool popped = q.pop(count, data.begin());
+            test.assert("Popped.", popped);
+
+            for (int i = 0; i < count; ++i)
+                test.assert("Got " + to_string(data[i]), data[i] == i);
         }
 
         test.assert("Queue is empty.", q.empty());
     }
 
-    test.assert("Can't pop when empty.", !q.pop(1, [](int){}));
-    test.assert("Can't push more than capcity.", !q.push(q.capacity() + 1, [](){ return 0; }));
+    {
+        vector<int> data(q.capacity() + 1);
+        test.assert("Can't pop when empty.", !q.pop(1, data.begin()));
+        test.assert("Can't push more than capcity.", !q.push(q.capacity() + 1, data.begin()));
+    }
 
     return test.success();
 }
