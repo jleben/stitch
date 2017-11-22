@@ -87,29 +87,34 @@ static bool test_bulk()
 
     SPSC_Queue<int> q(10);
 
-    for (int rep = 0; rep < 10; ++rep)
+    for (int rep = 0; rep < 6; ++rep)
     {
+        int count = q.capacity() - 2;
+
         {
             int i = 0;
-            bool pushed = q.push(8, [&](){ return i++; });
-            test.assert("Pushed 8 elements.", pushed && i == 8);
+            bool pushed = q.push(count, [&](){ return i++; });
+            test.assert("Pushed " + to_string(count) + " elements.", pushed && i == count);
         }
 
         test.assert("Queue is not empty.", !q.empty());
 
         {
             int i = 0;
-            bool popped = q.pop(8, [&](int v)
+            bool popped = q.pop(count, [&](int v)
             {
                 test.assert("Got " + to_string(v), v == i);
                 ++i;
             });
 
-            test.assert("Popped 8 elements.", popped && i == 8);
+            test.assert("Popped " + to_string(count) + " elements.", popped && i == count);
         }
 
         test.assert("Queue is empty.", q.empty());
     }
+
+    test.assert("Can't pop when empty.", !q.pop(1, [](int){}));
+    test.assert("Can't push more than capcity.", !q.push(q.capacity() + 1, [](){ return 0; }));
 
     return test.success();
 }
