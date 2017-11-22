@@ -37,6 +37,50 @@ static bool test()
     return test.success();
 }
 
+static bool test_bulk()
+{
+    Testing::Test test;
+
+    MPSC_Queue<int> q(10);
+
+    for (int rep = 0; rep < 6; ++rep)
+    {
+        int count = q.capacity() - 2;
+
+        {
+            int i = 0;
+            bool pushed = q.push(count, [&](){ return i++; });
+            test.assert("Pushed.", pushed);
+            test.assert("Pushed " + to_string(i) + " elements."
+                        + " Expected " + to_string(count),
+                        i == count);
+        }
+
+        test.assert("Queue is not empty.", !q.empty());
+
+        {
+            int i = 0;
+            bool popped = q.pop(count, [&](int v)
+            {
+                test.assert("Got " + to_string(v), v == i);
+                ++i;
+            });
+
+            test.assert("Popped.", popped);
+            test.assert("Popped " + to_string(i) + " elements."
+                        + " Expected " + to_string(count),
+                        i == count);
+        }
+
+        test.assert("Queue is empty.", q.empty());
+    }
+
+    test.assert("Can't pop when empty.", !q.pop(1, [](int){}));
+    test.assert("Can't push more than capcity.", !q.push(q.capacity() + 1, [](){ return 0; }));
+
+    return test.success();
+}
+
 static bool stress_test()
 {
     Testing::Test test;
@@ -120,6 +164,7 @@ Testing::Test_Set mpsc_queue_tests()
 {
     return {
         { "test", test },
+        { "bulk", test_bulk },
         { "stress", stress_test },
     };
 }

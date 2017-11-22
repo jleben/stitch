@@ -38,6 +38,11 @@ public:
     ~MPSC_Queue()
     {}
 
+    int capacity() const
+    {
+        return d_data.size();
+    }
+
     bool full() override
     {
         return d_writable < 1;
@@ -50,16 +55,9 @@ public:
 
     bool push(const T & value) override
     {
-        int writable = d_writable.fetch_sub(1);
-        bool ok = writable > 0;
-        if (!ok)
-        {
-            d_writable.fetch_add(1);
+        int pos;
+        if (!reserve_write(1, pos))
             return false;
-        }
-
-        int pos = d_head.fetch_add(1) & d_wrap_mask;
-        d_head.fetch_and(d_wrap_mask);
 
         //printf("Writing at %d\n", pos);
 
@@ -67,6 +65,25 @@ public:
         d_journal[pos] = true;
 
         // This may be useless, because an earlier push may not have completed.
+        d_public_io_event.notify();
+
+        return true;
+    }
+
+    template <typename F>
+    bool push(int count, F producer)
+    {
+        int pos;
+        if (!reserve_write(count, pos))
+            return false;
+
+        for (int i = 0; i < count; ++i)
+        {
+            d_data[pos] = producer();
+            d_journal[pos] = true;
+            pos = (pos + 1) & d_wrap_mask;
+        }
+
         d_public_io_event.notify();
 
         return true;
@@ -91,9 +108,57 @@ public:
         return true;
     }
 
+    template <typename F>
+    bool pop(int count, F consumer)
+    {
+        if (count > d_data.size())
+            return false;
+
+        int pos = d_tail;
+
+        for (int i = 0; i < count; ++i)
+        {
+            int j = (pos + i) & d_wrap_mask;
+            if (!d_journal[j])
+                return false;
+        }
+
+        for (int i = 0; i < count; ++i)
+        {
+            consumer(d_data[pos]);
+            d_journal[pos] = false;
+            pos = (pos + 1) & d_wrap_mask;
+        }
+
+        d_tail = pos;
+        d_writable.fetch_add(count);
+        d_public_io_event.notify();
+
+        return true;
+    }
+
     Event event() { return d_public_io_event.event(); }
 
 private:
+    bool reserve_write(int count, int & pos)
+    {
+        int old_writable = d_writable.fetch_sub(count);
+        bool ok = old_writable - count >= 0;
+        if (!ok)
+        {
+            d_writable.fetch_add(count);
+            return false;
+        }
+
+        // We must wrap "pos", because another thread might have
+        // incremented d_head just before us.
+        pos = d_head.fetch_add(count) & d_wrap_mask;
+
+        d_head.fetch_and(d_wrap_mask);
+
+        return true;
+    }
+
     int next_power_of_two(int value)
     {
         return std::pow(2, std::ceil(std::log2(value)));
