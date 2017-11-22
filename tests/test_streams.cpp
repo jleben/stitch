@@ -123,7 +123,6 @@ static bool test_basic()
     return test.success();
 }
 
-
 static bool test_exceeding_capacity()
 {
     Test test;
@@ -229,6 +228,49 @@ static bool test_many_to_one()
     return test.success();
 }
 
+static bool test_bulk()
+{
+    Test test;
+
+    Stream_Producer<int> source;
+    Stream_Consumer<int> sink1(10);
+    Stream_Consumer<int> sink2(10);
+
+    connect(source, sink1);
+    connect(source, sink2);
+
+    int count = 10;
+
+    {
+        vector<int> data(count);
+        for(int i = 0; i < count; ++i)
+            data[i] = i;
+        source.push(count, data.begin());
+    }
+
+    {
+        vector<int> data(count);
+
+        bool popped = sink1.pop(count, data.begin());
+        test.assert("Sink 1 popped.", popped);
+
+        for (int i = 0; i < count; ++i)
+            test.assert("Sink 2 got " + to_string(data[i]), data[i] == i);
+    }
+
+    {
+        vector<int> data(count);
+
+        bool popped = sink2.pop(count, data.begin());
+        test.assert("Sink 2 popped.", popped);
+
+        for (int i = 0; i < count; ++i)
+            test.assert("Sink 2 got " + to_string(data[i]), data[i] == i);
+    }
+
+    return test.success();
+}
+
 Test_Set stream_tests()
 {
     return {
@@ -239,5 +281,6 @@ Test_Set stream_tests()
         { "exceeding capacity", test_exceeding_capacity },
         { "one to many", test_one_to_many },
         { "many to one", test_many_to_one },
+        { "bulk", test_bulk },
     };
 }

@@ -97,6 +97,16 @@ public:
 
     // Lock-free
 
+    template <typename I>
+    void push(int count, const I & input)
+    {
+        d->sinks.for_each([&](const Consumer_Ptr & consumer){
+            consumer->queue.push(count, input);
+        });
+    }
+
+    // Lock-free
+
     bool has_connections()
     {
         return !d->sinks.empty();
@@ -146,6 +156,14 @@ public:
     bool pop(T & v)
     {
         return d->queue.pop(v);
+    }
+
+    // Wait-free
+
+    template <typename O>
+    bool pop(int count, const O & output)
+    {
+        return d->queue.pop(count, output);
     }
 
     // Lock-free
