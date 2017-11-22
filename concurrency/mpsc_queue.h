@@ -70,16 +70,18 @@ public:
         return true;
     }
 
-    template <typename F>
-    bool push(int count, F producer)
+    template <typename I>
+    bool push(int count, const I & input_start)
     {
         int pos;
         if (!reserve_write(count, pos))
             return false;
 
-        for (int i = 0; i < count; ++i)
+        I input = input_start;
+
+        for (int i = 0; i < count; ++i, ++input)
         {
-            d_data[pos] = producer();
+            d_data[pos] = *input;
             d_journal[pos] = true;
             pos = (pos + 1) & d_wrap_mask;
         }
@@ -108,8 +110,8 @@ public:
         return true;
     }
 
-    template <typename F>
-    bool pop(int count, F consumer)
+    template <typename O>
+    bool pop(int count, const O & output_start)
     {
         if (count > d_data.size())
             return false;
@@ -123,9 +125,11 @@ public:
                 return false;
         }
 
-        for (int i = 0; i < count; ++i)
+        O output = output_start;
+
+        for (int i = 0; i < count; ++i, ++output)
         {
-            consumer(d_data[pos]);
+            *output = d_data[pos];
             d_journal[pos] = false;
             pos = (pos + 1) & d_wrap_mask;
         }
