@@ -81,6 +81,39 @@ static bool test_single_thread()
     return test.success();
 }
 
+static bool test_bulk()
+{
+    Testing::Test test;
+
+    SPSC_Queue<int> q(10);
+
+    for (int rep = 0; rep < 10; ++rep)
+    {
+        {
+            int i = 0;
+            bool pushed = q.push(8, [&](){ return i++; });
+            test.assert("Pushed 8 elements.", pushed && i == 8);
+        }
+
+        test.assert("Queue is not empty.", !q.empty());
+
+        {
+            int i = 0;
+            bool popped = q.pop(8, [&](int v)
+            {
+                test.assert("Got " + to_string(v), v == i);
+                ++i;
+            });
+
+            test.assert("Popped 8 elements.", popped && i == 8);
+        }
+
+        test.assert("Queue is empty.", q.empty());
+    }
+
+    return test.success();
+}
+
 static bool test_multi_thread()
 {
     Testing::Test test;
@@ -129,8 +162,9 @@ Testing::Test_Set spsc_queue_tests()
 {
     return {
         { "lockfree", test_is_lockfree },
-        { "test_full_empty", test_full_empty },
-        { "test_single_thread", test_single_thread },
-        { "test_multi_thread", test_multi_thread }
+        { "full_empty", test_full_empty },
+        { "single_thread", test_single_thread },
+        { "bulk", test_bulk },
+        { "multi_thread", test_multi_thread }
     };
 }
