@@ -14,6 +14,7 @@ set(test_sources
     test_mpsc_queue.cpp
     test_mpmc_queue.cpp
     test_lockfree_set.cpp
+    test_atom_spmc.cpp
     test_streams.cpp
     test_signal.cpp
     test_timer.cpp

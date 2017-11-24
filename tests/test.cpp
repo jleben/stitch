@@ -6,6 +6,7 @@ Test_Set spsc_queue_tests();
 Test_Set mpsc_queue_tests();
 Test_Set mpmc_queue_tests();
 Test_Set lockfree_set_tests();
+Test_Set spmc_atom_tests();
 Test_Set stream_tests();
 Test_Set signal_tests();
 Test_Set timer_tests();
@@ -18,6 +19,7 @@ int main(int argc, char * argv[])
         { "mpsc-queue", mpsc_queue_tests() },
         { "mpmc-queue", mpmc_queue_tests() },
         { "lockfree-set", lockfree_set_tests() },
+        { "spmc-atom", spmc_atom_tests() },
         { "stream", stream_tests() },
         { "signal", signal_tests() },
         { "timer", timer_tests() },
