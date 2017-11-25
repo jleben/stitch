@@ -82,9 +82,10 @@ static bool iteration()
     {
         vector<int> elements;
 
-        set.for_each([&](int i){
+        for(int i : set)
+        {
             elements.push_back(i);
-        });
+        }
 
         test.assert("Set size is 10.", elements.size() == 10);
 
@@ -112,9 +113,10 @@ static bool iteration()
     {
         vector<int> elements;
 
-        set.for_each([&](int i){
+        for(int i : set)
+        {
             elements.push_back(i);
-        });
+        }
 
         test.assert("Set size is 5.", elements.size() == 5);
 
@@ -239,9 +241,10 @@ static bool stress()
         {
             vector<int> elements;
 
-            set.for_each([&](int i){
+            for(int i : set)
+            {
                 elements.push_back(i);
-            });
+            }
 
             unordered_set<int> unique_elements;
 

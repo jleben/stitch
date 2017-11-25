@@ -119,6 +119,88 @@ public:
         return found;
     }
 
+    struct Iterator
+    {
+
+        Hazard_Pointer<Node> & hp0 = Hazard_Pointers::acquire<Node>();
+        Hazard_Pointer<Node> & hp1 = Hazard_Pointers::acquire<Node>();
+
+        Iterator(Node * node)
+        {
+            hp0.pointer = node;
+            hp1.pointer = nullptr;
+        }
+
+        Iterator(const Iterator & other)
+        {
+            hp0.pointer = other.hp0.pointer.load();
+            hp1.pointer = nullptr;
+        }
+
+        Iterator & operator=(const Iterator & other)
+        {
+            hp0.pointer = other.hp0.pointer.load();
+            hp1.pointer = nullptr;
+            return *this;
+        }
+
+        ~Iterator()
+        {
+            hp0.pointer = hp1.pointer = nullptr;
+            hp0.release();
+            hp1.release();
+        }
+
+        bool operator==(const Iterator & other) const
+        {
+            return hp0.pointer == hp1.pointer;
+        }
+
+        bool operator!=(const Iterator & other) const
+        {
+            return !(*this == other);
+        }
+
+        T & operator*()
+        {
+            return hp0.pointer.load()->value;
+        }
+
+        Iterator & operator++()
+        {
+            auto &h0 = hp0.pointer;
+            auto &h1 = hp1.pointer;
+
+            Node * last, * current;
+
+            // Get current, make it safe, make sure it's still reachable from last.
+            do
+            {
+                last = h0.load();
+                current = last->next;
+                h1 = current;
+            }
+            while(last->next != current);
+
+            // Forget last and store current in its place.
+            h0 = current;
+            h1 = nullptr;
+
+            return *this;
+        }
+    };
+
+    Iterator begin()
+    {
+        Iterator it(&head);
+        return ++it;
+    }
+
+    Iterator end()
+    {
+        return Iterator(nullptr);
+    }
+
     // Lockfree
     // O(N)
 
