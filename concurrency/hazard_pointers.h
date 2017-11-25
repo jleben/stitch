@@ -14,19 +14,47 @@ using std::vector;
 using std::array;
 using std::unordered_set;
 
+template <typename T>
+class Hazard_Pointer
+{
+public:
+    atomic<T*> pointer;
+    bool acquire() { return !used.test_and_set(); }
+    void release() { used.clear(); }
+private:
+    std::atomic_flag used;
+};
+
 class Hazard_Pointers
 {
 public:
     static constexpr int K = 2;
-    static constexpr int H = 100;
+    static constexpr int H = 256;
 
-    template<typename T>
-    static atomic<T*> & h(int i) { return reinterpret_cast<atomic<T*>&>(d_thread_record.d->h[i]); }
+    template<typename T> static
+    Hazard_Pointer<T> & acquire()
+    {
+        int i = d_pointer_alloc_hint.load();
+        int j = i;
+        int m = H-1;
+        do
+        {
+            j = j + 1 & m;
+            if (d_pointers[j].acquire())
+            {
+                d_pointer_alloc_hint = j;
+                return reinterpret_cast<Hazard_Pointer<T>&>(d_pointers[i]);
+            }
+        }
+        while (j != i);
+
+        throw std::runtime_error("Ran out of pointers.");
+    }
 
     template <typename T>
     static void reclaim(T * p)
     {
-        d_thread_record.d->owned.emplace_back(p);
+        d_thread_record.owned.emplace_back(p);
         cleanup();
     }
 
@@ -34,27 +62,26 @@ private:
 
     static void cleanup()
     {
-        auto & owned = d_thread_record.d->owned;
+        auto & owned = d_thread_record.owned;
 
         if (owned.size() >= H)
         {
             unordered_set<void*> hs;
 
-            for (const auto & record : Hazard_Pointers::d_records)
+            for (const auto & pointer : Hazard_Pointers::d_pointers)
             {
-                for (int i = 0; i < K; ++i)
-                {
-                    void * h = record.h[i];
-                    if (h)
-                        hs.insert(h);
-                }
+                void * h = pointer.pointer;
+                if (h)
+                    hs.insert(h);
             }
 
             for(auto it = owned.begin(); it != owned.end(); )
             {
                 void * p = it->ptr;
                 if (hs.find(p) == hs.end())
+                {
                     it = owned.erase(it);
+                }
                 else
                     ++it;
             }
@@ -78,45 +105,15 @@ private:
         void (*deleter)(void *);
     };
 
-    struct Private_Record
-    {
-        std::atomic_flag used { false };
-        atomic<void*> h[K];
-        list<Owned_Ptr> owned;
-    };
-
     struct Thread_Record
     {
-        Thread_Record()
-        {
-            for (auto & record : Hazard_Pointers::d_records)
-            {
-                if (!record.used.test_and_set())
-                {
-                    d = &record;
-                    return;
-                }
-            }
-
-            throw std::runtime_error("Hazard pointers: Too many threads.");
-        }
-
-        ~Thread_Record()
-        {
-            for (int i = 0; i < K; ++i)
-            {
-                d->h[i] = nullptr;
-            }
-
-            d->used.clear();
-        }
-
-        Private_Record * d = nullptr;
+        list<Owned_Ptr> owned;
     };
 
     thread_local static Thread_Record d_thread_record;
 
-    static array<Private_Record,H> d_records;
+    static atomic<int> d_pointer_alloc_hint;
+    static array<Hazard_Pointer<void>,H> d_pointers;
 };
 
 }

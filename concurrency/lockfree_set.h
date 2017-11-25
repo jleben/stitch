@@ -83,8 +83,11 @@ public:
 
     bool contains(const T & value)
     {
-        auto & h0 = Hazard_Pointers::h<Node>(0);
-        auto & h1 = Hazard_Pointers::h<Node>(1);
+        auto & hp0 = Hazard_Pointers::acquire<Node>();
+        auto & hp1 = Hazard_Pointers::acquire<Node>();
+
+        auto & h0 = hp0.pointer;
+        auto & h1 = hp1.pointer;
 
         h0 = &head;
 
@@ -110,6 +113,9 @@ public:
 
         h0 = h1 = nullptr;
 
+        hp0.release();
+        hp1.release();
+
         return found;
     }
 
@@ -119,8 +125,11 @@ public:
     template <typename F>
     void for_each(F f)
     {
-        auto & h0 = Hazard_Pointers::h<Node>(0);
-        auto & h1 = Hazard_Pointers::h<Node>(1);
+        auto & hp0 = Hazard_Pointers::acquire<Node>();
+        auto & hp1 = Hazard_Pointers::acquire<Node>();
+
+        auto &h0 = hp0.pointer;
+        auto &h1 = hp1.pointer;
 
         h0 = &head;
 
@@ -128,6 +137,7 @@ public:
         {
             Node * last = h0.load();
             Node * current = last->next;
+
             if (!current)
                 break;
 
@@ -143,6 +153,9 @@ public:
         }
 
         h0 = h1 = nullptr;
+
+        hp0.release();
+        hp1.release();
     }
 };
 
