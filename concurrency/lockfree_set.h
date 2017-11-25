@@ -10,7 +10,8 @@ namespace Reactive {
 using std::atomic;
 using std::mutex;
 
-// Unordered set
+// Ordered set.
+// Element type T must support < operation.
 
 template <typename T>
 class Set
@@ -27,30 +28,38 @@ private:
     mutex d_mux;
 
 public:
-    // Blocking
-    // O(N)
+
+    // Wait-free
+    // O(1)
 
     bool empty() const
     {
         return head.next == nullptr;
     }
 
+    // Blocking
+    // O(N)
+
     void insert(const T & value)
     {
         std::lock_guard<mutex> lock(d_mux);
 
-        Node * n = head.next;
-        while(n)
+        Node * prev, * next;
+        prev = &head;
+        while((next = prev->next))
         {
-            if (n->value == value)
+            if (value == next->value)
                 return;
-            n = n->next;
+            else if (value < next->value)
+                break;
+            prev = next;
         }
 
-        n = new Node;
-        n->value = value;
-        n->next = head.next.load();
-        head.next = n;
+        Node *node = new Node;
+        node->value = value;
+        node->next = next;
+
+        prev->next = node;
     }
 
     // Blocking
@@ -60,18 +69,18 @@ public:
     {
         std::lock_guard<mutex> lock(d_mux);
 
-        Node * a, * b;
-        a = &head;
-        while((b = a->next))
+        Node * prev, * cur;
+        prev = &head;
+        while((cur = prev->next))
         {
-            if (b->value == value)
+            if (cur->value == value)
             {
-                a->next = b->next.load();
-                Hazard_Pointers::reclaim(b);
+                prev->next = cur->next.load();
+                Hazard_Pointers::reclaim(cur);
                 return true;
             }
 
-            a = b;
+            prev = cur;
         }
 
         return false;

@@ -153,7 +153,8 @@ static bool reclamation()
         Element(const Element & other): Element(other.x) {}
         ~Element() { elem_count.fetch_sub(1); }
         Element & operator=(const Element & other){ x = other.x; return *this; }
-        bool operator==(const Element & other) { return x == other.x; }
+        bool operator==(const Element & other) const { return x == other.x; }
+        bool operator<(const Element & other) const { return x < other.x; }
     };
 
     Set<Element> set;
