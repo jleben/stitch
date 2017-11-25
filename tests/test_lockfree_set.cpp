@@ -253,10 +253,15 @@ static bool stress()
                     test.assert_critical(msg.str(), e >= 0 && e < 100);
                 }
 
+                // FIXME: This test is invalid.
+                // It is possible for set.for_each
+                // to iterate over the same value multiple times,
+                // if the value was remove and reinserted in the meantime.
+
                 bool is_unique;
                 tie(ignore, is_unique) = unique_elements.emplace(e);
 
-                test.assert_critical("Element is unique.", is_unique);
+                test.assert_critical("Element is unique: " + to_string(e), is_unique);
             }
         }
     }
