@@ -198,6 +198,9 @@ public:
             return hp0.pointer.load()->value;
         }
 
+        // Lockfree
+        // O(N)
+
         Iterator & operator++()
         {
             auto &h0 = hp0.pointer;
@@ -253,45 +256,6 @@ public:
     Iterator end()
     {
         return Iterator(nullptr);
-    }
-
-    // Lockfree
-    // O(N)
-
-    template <typename F>
-    void for_each(F f)
-    {
-        auto & hp0 = Hazard_Pointers::acquire<Node>();
-        auto & hp1 = Hazard_Pointers::acquire<Node>();
-
-        auto &h0 = hp0.pointer;
-        auto &h1 = hp1.pointer;
-
-        h0 = &head;
-
-        while(true)
-        {
-            Node * last = h0.load();
-            Node * current = last->next;
-
-            if (!current)
-                break;
-
-            // Make current safe, and make sure it's reachable
-            h1 = current;
-            if (last->next != current)
-                continue;
-
-            f(current->value);
-
-            // Forget last and make current the new last
-            h0 = h1.load();
-        }
-
-        h0 = h1 = nullptr;
-
-        hp0.release();
-        hp1.release();
     }
 };
 

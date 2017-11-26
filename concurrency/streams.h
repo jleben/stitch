@@ -81,18 +81,20 @@ public:
 
     ~Stream_Producer()
     {
-        d->sinks.for_each([&](const Consumer_Ptr & consumer){
+        for(const auto & consumer : d->sinks)
+        {
             consumer->sources.remove(d);
-        });
+        };
     }
 
     // Lock-free
 
     void push(const T & val)
     {
-        d->sinks.for_each([&](const Consumer_Ptr & consumer){
+        for(const auto & consumer : d->sinks)
+        {
             consumer->queue.push(val);
-        });
+        };
     }
 
     // Lock-free
@@ -100,9 +102,10 @@ public:
     template <typename I>
     void push(int count, const I & input)
     {
-        d->sinks.for_each([&](const Consumer_Ptr & consumer){
+        for(const auto & consumer : d->sinks)
+        {
             consumer->queue.push(count, input);
-        });
+        };
     }
 
     // Lock-free
@@ -139,9 +142,10 @@ public:
 
     ~Stream_Consumer()
     {
-        d->sources.for_each([&](const Producer_Ptr & producer){
+        for (const auto & producer : d->sources)
+        {
             producer->sinks.remove(d);
-        });
+        };
     }
 
     // Wait-free
