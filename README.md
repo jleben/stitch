@@ -1,4 +1,4 @@
-This project provides basic building blocks for **asynchronous (reactive) communication** between threads. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux). It has the ambition to be suitable for **real-time applications**: it aims to provide wait-free or at least lock-free progress guarantees.
+The Stitch library provides basic building blocks for **communication** between threads. It has the ambition to be suitable for **real-time applications**: it aims to provide at least lock-free progress guarantees. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux).
 
 See the [comparison with related software](#comparison-with-related-software) below.
 
@@ -12,7 +12,7 @@ All queues have the same interface, they only differ in how many producer and co
 
 Example:
 
-    #include "concurrency/spsc_queue.h"
+    #include "stitch/spsc_queue.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
@@ -60,7 +60,7 @@ Each consumer has a MPSC queue from which it pops and to which producers push.
 
 Example:
 
-    #include "concurrency/streams.h"
+    #include "stitch/streams.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
@@ -119,9 +119,9 @@ The implementation is specific to the operating system. This is currently only i
 
 Example with callbacks:
 
-    #include "concurrency/events.h"
-    #include "concurrency/timer.h"
-    #include "concurrency/spsc_queue.h"
+    #include "stitch/events.h"
+    #include "stitch/timer.h"
+    #include "stitch/spsc_queue.h"
     #include <thread>
     #include <chrono>
     #include <iostream>
