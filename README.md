@@ -17,7 +17,7 @@ Example:
     #include <chrono>
     #include <iostream>
 
-    using namespace Reactive;
+    using namespace Stitch;
     using namespace std;
 
     int main()
@@ -65,7 +65,7 @@ Example:
     #include <chrono>
     #include <iostream>
 
-    using namespace Reactive;
+    using namespace Stitch;
     using namespace std;
 
     int main()
@@ -126,7 +126,7 @@ Example with callbacks:
     #include <chrono>
     #include <iostream>
 
-    using namespace Reactive;
+    using namespace Stitch;
     using namespace std;
 
     int main()
