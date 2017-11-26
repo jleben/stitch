@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(concurrency)
+project(stitch)
 
 set(sources
     concurrency/hazard_pointer.cpp
@@ -11,8 +11,8 @@ set(sources
     concurrency/linux/file.cpp
 )
 
-add_library(concurrency SHARED ${sources})
+add_library(stitch SHARED ${sources})
 
-set_property(TARGET concurrency PROPERTY CXX_STANDARD 14)
+set_property(TARGET stitch PROPERTY CXX_STANDARD 14)
 
 add_subdirectory(tests)

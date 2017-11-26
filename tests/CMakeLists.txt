@@ -4,7 +4,7 @@ set_property(TARGET testing PROPERTY CXX_STANDARD 14)
 
 function(make_test name src)
     add_executable(${name} ${src})
-    target_link_libraries(${name} testing concurrency pthread)
+    target_link_libraries(${name} testing stitch pthread)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD 14)
 endfunction()
 
