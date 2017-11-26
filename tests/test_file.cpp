@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-using namespace Reactive;
+using namespace Stitch;
 using namespace std;
 using namespace Testing;
 

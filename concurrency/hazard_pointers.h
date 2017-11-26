@@ -6,7 +6,7 @@
 #include <array>
 #include <unordered_set>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::atomic;
 using std::list;
@@ -37,8 +37,10 @@ public:
         int i = d_pointer_alloc_hint.load();
         int j = i;
         int m = H-1;
+        int c = 0;
         do
         {
+            ++c;
             j = j + 1 & m;
             if (d_pointers[j].acquire())
             {
@@ -47,6 +49,9 @@ public:
             }
         }
         while (j != i);
+
+        if (c > 1)
+            printf("Retries: %d\n", c);
 
         throw std::runtime_error("Ran out of pointers.");
     }
@@ -80,6 +85,7 @@ private:
                 void * p = it->ptr;
                 if (hs.find(p) == hs.end())
                 {
+                    //printf("Deleting %p\n", p);
                     it = owned.erase(it);
                 }
                 else

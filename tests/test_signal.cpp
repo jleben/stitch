@@ -4,7 +4,7 @@
 #include <thread>
 #include <iostream>
 
-using namespace Reactive;
+using namespace Stitch;
 using namespace std;
 using namespace Testing;
 

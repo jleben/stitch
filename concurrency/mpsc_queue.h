@@ -7,7 +7,7 @@
 #include <thread>
 #include <stdexcept>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::vector;
 using std::atomic;

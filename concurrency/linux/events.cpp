@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace Reactive {
+namespace Stitch {
 
 void wait(const Event & e)
 {

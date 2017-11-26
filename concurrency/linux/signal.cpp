@@ -11,7 +11,7 @@
 
 using namespace std;
 
-namespace Reactive {
+namespace Stitch {
 
 Signal::Signal()
 {

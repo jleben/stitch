@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace Reactive {
+namespace Stitch {
 
 File_Event::File_Event(int fd_, Type type)
 {

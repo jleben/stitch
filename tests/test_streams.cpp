@@ -1,7 +1,7 @@
 #include "../concurrency/streams.h"
 #include "../testing/testing.h"
 
-using namespace Reactive;
+using namespace Stitch;
 using namespace Testing;
 using namespace std;
 

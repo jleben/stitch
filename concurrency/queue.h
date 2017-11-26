@@ -1,5 +1,5 @@
 
-namespace Reactive {
+namespace Stitch {
 
 template <typename T>
 class Queue

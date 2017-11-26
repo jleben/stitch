@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace Reactive {
+namespace Stitch {
 
 class Signal
 {
@@ -13,7 +13,7 @@ public:
     ~Signal();
 
     void notify();
-    void wait() { Reactive::wait(event()); }
+    void wait() { Stitch::wait(event()); }
 
     Event event();
 

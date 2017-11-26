@@ -2,7 +2,7 @@
 #include "../linux/waiter.h"
 #include "../testing/testing.h"
 
-using namespace Reactive;
+using namespace Stitch;
 
 bool test_next()
 {

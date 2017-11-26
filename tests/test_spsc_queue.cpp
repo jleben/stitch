@@ -4,7 +4,7 @@
 #include <thread>
 #include <chrono>
 
-using namespace Reactive;
+using namespace Stitch;
 using namespace std;
 
 static bool test_is_lockfree()

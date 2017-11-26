@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace Reactive {
+namespace Stitch {
 
 class Timer
 {
@@ -21,7 +21,7 @@ public:
 
     void stop();
 
-    void wait() { Reactive::wait(event()); }
+    void wait() { Stitch::wait(event()); }
 
     Event event();
 

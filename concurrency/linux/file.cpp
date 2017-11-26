@@ -12,7 +12,7 @@
 
 using namespace std;
 
-namespace Reactive {
+namespace Stitch {
 
 File::File(const string & path, File::Access access, bool blocking):
     File(open_file(path, access, blocking))

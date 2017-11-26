@@ -2,7 +2,7 @@
 
 #include "events.h"
 
-namespace Reactive {
+namespace Stitch {
 
 class Waiter
 {

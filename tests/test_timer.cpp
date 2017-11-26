@@ -6,7 +6,7 @@
 #include <iostream>
 
 using namespace std;
-using namespace Reactive;
+using namespace Stitch;
 using namespace Testing;
 
 static bool test_single_shot()

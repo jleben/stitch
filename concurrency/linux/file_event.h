@@ -4,7 +4,7 @@
 
 #include <cstdint>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::uint32_t;
 

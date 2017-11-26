@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::vector;
 using std::atomic;

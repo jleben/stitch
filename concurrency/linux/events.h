@@ -7,7 +7,7 @@
 
 #include <sys/epoll.h>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::function;
 using std::list;

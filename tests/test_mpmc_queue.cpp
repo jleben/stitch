@@ -1,7 +1,7 @@
 #include "../concurrency/mpmc_queue.h"
 #include "../testing/testing.h"
 
-using namespace Reactive;
+using namespace Stitch;
 using namespace std;
 
 static bool test()

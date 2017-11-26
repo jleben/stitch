@@ -7,7 +7,7 @@
 #include <sstream>
 
 using namespace Testing;
-using namespace Reactive;
+using namespace Stitch;
 using namespace std;
 
 static bool empty()

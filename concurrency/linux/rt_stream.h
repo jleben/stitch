@@ -5,7 +5,7 @@
 #include <mutex>
 #include <memory>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::atomic;
 using std::vector;

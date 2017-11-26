@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-namespace Reactive {
+namespace Stitch {
 
 Waiter::Waiter()
 {

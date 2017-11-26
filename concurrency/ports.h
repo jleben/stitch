@@ -4,7 +4,7 @@
 
 #include <memory>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::shared_ptr;
 

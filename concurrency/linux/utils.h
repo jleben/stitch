@@ -6,7 +6,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-namespace Reactive {
+namespace Stitch {
 
 template<class Rep, class Period>
 inline

@@ -4,7 +4,7 @@
 #include <atomic>
 #include <cstdint>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::atomic;
 using std::array;

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-namespace Reactive {
+namespace Stitch {
 
 Timer::Timer()
 {

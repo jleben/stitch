@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::mutex;
 using std::lock_guard;

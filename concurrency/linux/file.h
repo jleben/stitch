@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace Reactive {
+namespace Stitch {
 
 using std::string;
 
