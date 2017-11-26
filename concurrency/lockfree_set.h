@@ -113,40 +113,13 @@ public:
 
     bool contains(const T & value)
     {
-        auto & hp0 = Hazard_Pointers::acquire<Node>();
-        auto & hp1 = Hazard_Pointers::acquire<Node>();
-
-        auto & h0 = hp0.pointer;
-        auto & h1 = hp1.pointer;
-
-        h0 = &head;
-
-        bool found = false;
-
-        while(!found)
+        for (const T & v : *this)
         {
-            Node * last = h0.load();
-            Node * current = last->next;
-            if (!current)
-                break;
-
-            // Make current safe, and make sure it's reachable
-            h1 = current;
-            if (last->next != current)
-                continue;
-
-            found = current->value == value;
-
-            // Forget last and make current the new last
-            h0 = h1.load();
+            if (v == value)
+                return true;
         }
 
-        h0 = h1 = nullptr;
-
-        hp0.release();
-        hp1.release();
-
-        return found;
+        return false;
     }
 
     struct Iterator
