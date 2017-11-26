@@ -1,4 +1,4 @@
-#include "../concurrency/signal.h"
+#include "../stitch/signal.h"
 #include "../testing/testing.h"
 
 #include <thread>

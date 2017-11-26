@@ -1,4 +1,4 @@
-#include "../concurrency/spsc_queue.h"
+#include "../stitch/spsc_queue.h"
 #include "../testing/testing.h"
 
 #include <thread>

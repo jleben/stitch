@@ -1,4 +1,4 @@
-#include "../concurrency/atom_spmc.h"
+#include "../stitch/atom_spmc.h"
 #include "../testing/testing.h"
 
 #include <thread>

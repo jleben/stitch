@@ -1,4 +1,4 @@
-#include "../concurrency/mpmc_queue.h"
+#include "../stitch/mpmc_queue.h"
 #include "../testing/testing.h"
 
 using namespace Stitch;

@@ -1,4 +1,4 @@
-#include "../concurrency/lockfree_set.h"
+#include "../stitch/lockfree_set.h"
 #include "../testing/testing.h"
 
 #include <unordered_set>

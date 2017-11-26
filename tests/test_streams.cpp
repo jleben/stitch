@@ -1,4 +1,4 @@
-#include "../concurrency/streams.h"
+#include "../stitch/streams.h"
 #include "../testing/testing.h"
 
 using namespace Stitch;
