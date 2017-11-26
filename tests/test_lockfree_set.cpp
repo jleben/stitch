@@ -199,6 +199,52 @@ static bool reclamation()
     return test.success();
 }
 
+static bool test_removal_during_iteration()
+{
+    Test test;
+
+    Set<int> set;
+
+    int total_count = 100;
+
+    for (int i = 0; i < total_count; ++i)
+        set.insert(i);
+
+    try
+    {
+        unordered_set<int> visited;
+
+        for(int i : set)
+        {
+            bool is_unique;
+            tie(ignore, is_unique) = visited.emplace(i);
+
+            {
+                ostringstream msg;
+                msg << "Element " << i << " not previously visited.";
+                test.assert_critical(msg.str(), is_unique);
+            }
+
+            //printf("value %d, count %d\n", i, (int)visited.size());
+
+            if (visited.size() == total_count / 2)
+            {
+                set.remove(i);
+            }
+        }
+
+        ostringstream msg;
+        msg << "Visited " << (int)visited.size() << " elements. Expected " << total_count;
+        test.assert_critical(msg.str(), visited.size() == total_count);
+    }
+    catch (std::runtime_error &)
+    {
+
+    }
+
+    return test.success();
+}
+
 static bool stress()
 {
     Test test;
@@ -287,6 +333,7 @@ Test_Set lockfree_set_tests()
         { "empty", empty },
         { "contains", contains },
         { "iteration", iteration },
+        { "removal-during-iteration", test_removal_during_iteration },
         { "reclamation", reclamation },
         { "stress", stress },
     };

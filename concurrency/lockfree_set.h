@@ -10,8 +10,8 @@ namespace Reactive {
 using std::atomic;
 using std::mutex;
 
-// Ordered set.
-// Element type T must support < operation.
+// Unordered set.
+// Element type T must support euqality comparison (operator '==').
 
 template <typename T>
 class Set
@@ -20,6 +20,7 @@ private:
     struct Node
     {
         atomic<Node*> next { nullptr };
+        atomic<bool> removed { false };
         T value;
     };
 
@@ -44,21 +45,23 @@ public:
     {
         std::lock_guard<mutex> lock(d_mux);
 
-        Node * prev, * next;
-        prev = &head;
-        while((next = prev->next))
+        // If value already is already in the set, abort.
+        for(Node * n = head.next; n != nullptr; n = n->next)
         {
-            if (value == next->value)
+            if (n->value == value)
                 return;
-            else if (value < next->value)
-                break;
-            prev = next;
         }
 
+        // Create node
         Node *node = new Node;
         node->value = value;
-        node->next = next;
 
+        // Insert nodes in increasing order of their addresses
+        Node * prev = &head;
+        while(prev->next && prev->next < node)
+            prev = prev->next;
+
+        node->next = prev->next.load();
         prev->next = node;
     }
 
@@ -76,6 +79,7 @@ public:
             if (cur->value == value)
             {
                 prev->next = cur->next.load();
+                cur->removed = true;
                 Hazard_Pointers::reclaim(cur);
                 return true;
             }
@@ -86,6 +90,23 @@ public:
         return false;
     }
 
+    // Blocking
+    // O(N)
+
+    void clear()
+    {
+        std::lock_guard<mutex> lock(d_mux);
+
+        Node * n = head.next;
+        head.next = nullptr;
+        while(n)
+        {
+            Node * next = n->next;
+            n->removed = true;
+            Hazard_Pointers::reclaim(n);
+            n = next;
+        }
+    }
 
     // Lockfree
     // O(N)
@@ -130,24 +151,26 @@ public:
 
     struct Iterator
     {
-
-        Hazard_Pointer<Node> & hp0 = Hazard_Pointers::acquire<Node>();
-        Hazard_Pointer<Node> & hp1 = Hazard_Pointers::acquire<Node>();
-
-        Iterator(Node * node)
+        Iterator(Node * head): head(head)
         {
-            hp0.pointer = node;
+            hp0.pointer = head;
             hp1.pointer = nullptr;
         }
 
+        // End iterator
+        Iterator()
+        {}
+
         Iterator(const Iterator & other)
         {
+            head = other.head;
             hp0.pointer = other.hp0.pointer.load();
             hp1.pointer = nullptr;
         }
 
         Iterator & operator=(const Iterator & other)
         {
+            head = other.head;
             hp0.pointer = other.hp0.pointer.load();
             hp1.pointer = nullptr;
             return *this;
@@ -162,7 +185,7 @@ public:
 
         bool operator==(const Iterator & other) const
         {
-            return hp0.pointer == hp1.pointer;
+            return hp0.pointer == other.hp0.pointer;
         }
 
         bool operator!=(const Iterator & other) const
@@ -180,23 +203,45 @@ public:
             auto &h0 = hp0.pointer;
             auto &h1 = hp1.pointer;
 
-            Node * last, * current;
+            Node * current;
+            Node * next;
 
-            // Get current, make it safe, make sure it's still reachable from last.
+            current = h0.load();
+
             do
             {
-                last = h0.load();
-                current = last->next;
-                h1 = current;
-            }
-            while(last->next != current);
+                next = current->next;
+                h1 = next;
 
-            // Forget last and store current in its place.
-            h0 = current;
-            h1 = nullptr;
+                if (current->removed)
+                {
+                    // Restart from head
+                    h0 = current = head;
+                    continue;
+                }
+                else if (current->next == next)
+                {
+                    // Successfully got next, so make it current
+                    h0 = current = next;
+                    // Stop if this is a previously unvisited element
+                    if (!current || current > last_visited_pos)
+                        break;
+                }
+                // Repeat for the current element
+            }
+            while(true);
+
+            // Remember position of current element
+            last_visited_pos = current;
 
             return *this;
         }
+
+    private:
+        Node * head = nullptr;
+        Node * last_visited_pos = nullptr;
+        Hazard_Pointer<Node> & hp0 = Hazard_Pointers::acquire<Node>();
+        Hazard_Pointer<Node> & hp1 = Hazard_Pointers::acquire<Node>();
     };
 
     Iterator begin()
