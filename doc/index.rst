@@ -10,6 +10,7 @@ Stitch - Thread Communication C++ Library
    :maxdepth: 2
    :caption: Contents:
 
+   queues/intro
 
 
 Indices and tables
