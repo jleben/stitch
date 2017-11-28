@@ -11,10 +11,18 @@ using std::atomic;
 
 // FIXME: Relax memory ordering constraints
 
+/*!
+Single-producer-single-consumer queue.
+All methods have wait-free progress guarantee.
+*/
+
 template <typename T>
 class SPSC_Queue : public Queue<T>
 {
 public:
+
+    /*! Constructs the queue with the given maximum capacity. */
+
     SPSC_Queue(int capacity): d_data(capacity + 1) {}
 
     static bool is_lockfree()
@@ -22,20 +30,42 @@ public:
         return ATOMIC_INT_LOCK_FREE;
     }
 
+    /*!
+    \brief Maximum number of elements the queue can contain.
+    */
+
     int capacity() const
     {
         return (int) d_data.size()-1;
     }
+
+    /*!
+    \brief Whether the queue is full.
+    */
 
     bool full() override
     {
         return !writable_size();
     }
 
+
+    /*!
+    \brief Whether the queue is empty.
+    */
+
     bool empty() override
     {
         return !readable_size();
     }
+
+    /*!
+    \brief Adds an element to the back of the queue.
+
+    The element \p value is added to the back of the queue.
+    This can fail if the queue is full, in which case nothing is done.
+
+    \return True on success, false on failure.
+    */
 
     bool push(const T & value) override
     {
@@ -47,6 +77,17 @@ public:
         d_signal.notify();
         return true;
     }
+
+    /*!
+    \brief Adds elements in bulk to the back of the queue.
+
+    Adds \p count consecutive elements starting from the iterator \p input_start,
+    which must satisfy the `InputIterator` concept.
+
+    This can fail if the queue is full, in which case nothing is done.
+
+    \return True on success, false on failure.
+    */
 
     template <typename I>
     bool push(int count, I input_start)
@@ -84,6 +125,17 @@ public:
         return true;
     }
 
+    /*!
+    \brief
+    Removes an element from the front of the queue.
+
+    An element is removed from the front of the queue and stored in \p value.
+
+    This can fail if the queue is empty, in which case nothing is done.
+
+    \return True on success, false on failure.
+    */
+
     bool pop(T & value) override
     {
         if (!readable_size())
@@ -93,6 +145,18 @@ public:
         advance_read(1);
         return true;
     }
+
+    /*!
+    \brief Removes elements in bulk from the front of the queue.
+
+    Removes \p count elements from the front of the queue and stores
+    them in the consecutive positions starting from the iterator \p output_start.
+    The iterator must satisfy the `OutputIterator` concept.
+
+    This can fail if the queue is full, in which case nothing is done.
+
+    \return True on success, false on failure.
+    */
 
     template <typename O>
     bool pop(int count, O output_start)
