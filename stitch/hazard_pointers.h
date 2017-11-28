@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 namespace Stitch {
+namespace Detail {
 
 using std::atomic;
 using std::list;
@@ -122,4 +123,5 @@ private:
     static array<Hazard_Pointer<void>,H> d_pointers;
 };
 
+}
 }

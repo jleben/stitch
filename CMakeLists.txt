@@ -5,7 +5,7 @@ project(stitch)
 option(STITCH_BUILD_DOCUMENTATION OFF)
 
 set(sources
-    stitch/hazard_pointer.cpp
+    stitch/hazard_pointers.cpp
     stitch/linux/events.cpp
     stitch/linux/signal.cpp
     stitch/linux/timer.cpp

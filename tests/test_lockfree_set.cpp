@@ -140,6 +140,8 @@ static bool iteration()
 
 static bool reclamation()
 {
+    using Detail::Hazard_Pointers;
+
     Test test;
 
     static atomic<int> elem_count { 0 };

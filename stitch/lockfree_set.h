@@ -80,7 +80,7 @@ public:
             {
                 prev->next = cur->next.load();
                 cur->removed = true;
-                Hazard_Pointers::reclaim(cur);
+                Detail::Hazard_Pointers::reclaim(cur);
                 return true;
             }
 
@@ -103,7 +103,7 @@ public:
         {
             Node * next = n->next;
             n->removed = true;
-            Hazard_Pointers::reclaim(n);
+            Detail::Hazard_Pointers::reclaim(n);
             n = next;
         }
     }
@@ -216,8 +216,8 @@ public:
     private:
         Node * head = nullptr;
         Node * last_visited_pos = nullptr;
-        Hazard_Pointer<Node> & hp0 = Hazard_Pointers::acquire<Node>();
-        Hazard_Pointer<Node> & hp1 = Hazard_Pointers::acquire<Node>();
+        Detail::Hazard_Pointer<Node> & hp0 = Detail::Hazard_Pointers::acquire<Node>();
+        Detail::Hazard_Pointer<Node> & hp1 = Detail::Hazard_Pointers::acquire<Node>();
     };
 
     Iterator begin()
