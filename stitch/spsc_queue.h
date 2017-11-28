@@ -12,7 +12,8 @@ using std::atomic;
 // FIXME: Relax memory ordering constraints
 
 /*!
-Single-producer-single-consumer queue.
+\brief Single-producer-single-consumer queue.
+
 All methods have wait-free progress guarantee.
 */
 
@@ -21,7 +22,7 @@ class SPSC_Queue : public Queue<T>
 {
 public:
 
-    /*! Constructs the queue with the given maximum capacity. */
+    /*! \brief Constructs the queue with the given capacity. */
 
     SPSC_Queue(int capacity): d_data(capacity + 1) {}
 
