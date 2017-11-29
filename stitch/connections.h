@@ -56,10 +56,16 @@ template <typename T>
 void disconnect(Client<T> & client, Server<T> & server);
 
 template <typename T>
-void connect(Client<T> & client, Client<T> & server);
+void connect(Client<T> &, Client<T> &);
 
 template <typename T>
-void disconnect(Client<T> & client, Client<T> & server);
+void disconnect(Client<T> &, Client<T> &);
+
+template <typename T>
+bool are_connected(Client<T> &, Client<T> &);
+
+template <typename T>
+bool are_connected(Client<T> &, Server<T> &);
 
 template <typename T>
 class Client
@@ -69,6 +75,8 @@ public:
     friend void disconnect<T>(Client<T> & client, Client<T> & server);
     friend void connect<T>(Client<T> & client, Server<T> & server);
     friend void disconnect<T>(Client<T> & client, Server<T> & server);
+    friend bool are_connected<T>(Client<T> &, Server<T> &);
+    friend bool are_connected<T>(Client<T> &, Client<T> &);
 
     Client(): p(std::make_shared<Detail::PortData<T>>()) {}
 
@@ -94,6 +102,11 @@ public:
         }
     }
 
+    bool has_connections() const
+    {
+        return !p->links.empty();
+    }
+
 private:
     shared_ptr<Detail::PortData<T>> p;
 };
@@ -104,10 +117,12 @@ class Server
 public:
     friend void connect<T>(Client<T> & client, Server<T> & server);
     friend void disconnect<T>(Client<T> & client, Server<T> & server);
+    friend bool are_connected<T>(Client<T> &, Server<T> &);
 
-    Server():
+    template <typename ... A>
+    Server(A ... arg):
         p(std::make_shared<Detail::PortData<T>>()),
-        d(std::make_shared<T>())
+        d(std::make_shared<T>(arg ...))
     {}
 
     ~Server()
@@ -124,6 +139,11 @@ public:
     T & data()
     {
         return *d;
+    }
+
+    bool has_connections() const
+    {
+        return !p->links.empty();
     }
 
 private:
@@ -197,6 +217,18 @@ void disconnect(Client<T> & client1, Client<T> & client2)
         if (link)
             client2.p->links.remove(link);
     }
+}
+
+template <typename T>
+bool are_connected(Client<T> & c1, Client<T> & c2)
+{
+    return c1.p->find_link(c2.p) != nullptr;
+}
+
+template <typename T>
+bool are_connected(Client<T> & c, Server<T> & s)
+{
+    return c.p->find_link(s.p) != nullptr;
 }
 
 }
