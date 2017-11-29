@@ -130,12 +130,31 @@ static bool test_multiple_servers()
     return test.success();
 }
 
+static bool test_no_default_constructor()
+{
+    struct Data
+    {
+        Data(int v): x(v) {}
+        int x;
+    };
+
+    Client<Data> client1;
+    Client<Data> client2;
+    Server<Data> server(make_shared<Data>(3));
+
+    connect(client1, server);
+    connect(client1, client2, make_shared<Data>(5));
+
+    return true;
+}
+
 Testing::Test_Set connection_tests()
 {
     return {
         { "client", test_client },
         { "single-server", test_single_server },
         { "multiple-servers", test_multiple_servers },
+        { "no-default-constructor", test_no_default_constructor },
     };
 }
 

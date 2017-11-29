@@ -32,7 +32,7 @@ public:
     using Queue = MPSC_Queue<T>;
 
     Stream_Consumer(int capacity):
-        Server<MPSC_Queue<T>>(capacity)
+        Server<Queue>(std::make_shared<Queue>(capacity))
     {}
 
     // Wait-free

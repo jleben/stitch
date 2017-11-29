@@ -59,7 +59,7 @@ template <typename T>
 void disconnect(Client<T> & client, Server<T> & server);
 
 template <typename T>
-void connect(Client<T> &, Client<T> &);
+void connect(Client<T> &, Client<T> &, const shared_ptr<T> &);
 
 template <typename T>
 void disconnect(Client<T> &, Client<T> &);
@@ -74,10 +74,10 @@ template <typename T>
 class Client
 {
 public:
-    friend void connect<T>(Client<T> & client, Client<T> & server);
-    friend void disconnect<T>(Client<T> & client, Client<T> & server);
-    friend void connect<T>(Client<T> & client, Server<T> & server);
-    friend void disconnect<T>(Client<T> & client, Server<T> & server);
+    friend void connect<T>(Client<T> &, Client<T> &, const shared_ptr<T> &);
+    friend void disconnect<T>(Client<T> &, Client<T> &);
+    friend void connect<T>(Client<T> &, Server<T> &);
+    friend void disconnect<T>(Client<T> &, Server<T> &);
     friend bool are_connected<T>(Client<T> &, Server<T> &);
     friend bool are_connected<T>(Client<T> &, Client<T> &);
 
@@ -146,11 +146,12 @@ public:
     friend void disconnect<T>(Client<T> & client, Server<T> & server);
     friend bool are_connected<T>(Client<T> &, Server<T> &);
 
-    template <typename ... A>
-    Server(A ... arg):
+    Server(const shared_ptr<T> & data):
         p(std::make_shared<Detail::PortData<T>>()),
-        d(std::make_shared<T>(arg ...))
+        d(data)
     {}
+
+    Server(): Server(std::make_shared<T>()) {}
 
     ~Server()
     {
@@ -214,12 +215,10 @@ void disconnect(Client<T> & client, Server<T> & server)
 }
 
 template <typename T>
-void connect(Client<T> & client1, Client<T> & client2)
+void connect(Client<T> & client1, Client<T> & client2, const shared_ptr<T> & data)
 {
     if (&client1 == &client2)
         return;
-
-    auto data = std::make_shared<T>();
 
     {
         auto link = std::make_shared<Detail::Link<T>>();
@@ -233,6 +232,15 @@ void connect(Client<T> & client1, Client<T> & client2)
         link->data = data;
         client2.p->links.insert(link);
     }
+}
+
+template <typename T>
+void connect(Client<T> & client1, Client<T> & client2)
+{
+    if (&client1 == &client2)
+        return;
+
+    connect(client1, client2, std::make_shared<T>());
 }
 
 template <typename T>
