@@ -24,6 +24,7 @@ public:
     function<void()> clear;
 };
 
+/*! \brief Wait for a single event. */
 void wait(const Event &);
 
 class Event_Reactor

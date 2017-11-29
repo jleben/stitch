@@ -264,6 +264,9 @@ private:
     shared_ptr<T> d;
 };
 
+/*!
+ * \brief Connects a Client to a Server.
+ */
 template <typename T>
 void connect(Client<T> & client, Server<T> & server)
 {
@@ -280,6 +283,9 @@ void connect(Client<T> & client, Server<T> & server)
     }
 }
 
+/*!
+ * \brief Disconnects a Client from a Server.
+ */
 template <typename T>
 void disconnect(Client<T> & client, Server<T> & server)
 {
@@ -295,6 +301,9 @@ void disconnect(Client<T> & client, Server<T> & server)
     }
 }
 
+/*!
+ * \brief Connects two Clients with the given shared object.
+ */
 template <typename T>
 void connect(Client<T> & client1, Client<T> & client2, const shared_ptr<T> & data)
 {
@@ -315,6 +324,9 @@ void connect(Client<T> & client1, Client<T> & client2, const shared_ptr<T> & dat
     }
 }
 
+/*!
+ * \brief Connects two Clients with a default-constructed shared object.
+ */
 template <typename T>
 void connect(Client<T> & client1, Client<T> & client2)
 {
@@ -324,6 +336,11 @@ void connect(Client<T> & client1, Client<T> & client2)
     connect(client1, client2, std::make_shared<T>());
 }
 
+/*!
+ * \brief Disconnects two Clients.
+ *
+ * The object shared between the clients is destroyed, unless it has another reference.
+ */
 template <typename T>
 void disconnect(Client<T> & client1, Client<T> & client2)
 {
@@ -339,12 +356,18 @@ void disconnect(Client<T> & client1, Client<T> & client2)
     }
 }
 
+/*!
+ * \brief Returns whether two clients are connected.
+ */
 template <typename T>
 bool are_connected(Client<T> & c1, Client<T> & c2)
 {
     return c1.p->find_link(c2.p) != nullptr;
 }
 
+/*!
+ * \brief Returns whether a Client is connected to a Server.
+ */
 template <typename T>
 bool are_connected(Client<T> & c, Server<T> & s)
 {
