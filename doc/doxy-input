@@ -1,1 +1,2 @@
-INPUT = ${DOXYGEN_INPUT}
+INPUT = ${CMAKE_SOURCE_DIR}/stitch \
+        ${CMAKE_SOURCE_DIR}/doc/pages
