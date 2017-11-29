@@ -62,4 +62,7 @@ public:
     }
 };
 
+template <typename T>
+void connect(Stream_Producer<T> &, Stream_Producer<T> &) = delete;
+
 }
