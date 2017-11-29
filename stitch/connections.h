@@ -70,6 +70,24 @@ bool are_connected(Client<T> &, Client<T> &);
 template <typename T>
 bool are_connected(Client<T> &, Server<T> &);
 
+/*!
+ * \brief A connection endpoint which uses shared objects of type T but does not own any.
+ *
+ * When a Client is connected to a Server, it gains access to the Server's shared object.
+ * When a Client is connected to another Client, a new shared object is created just
+ * for this connection.
+ *
+ * A Client can only be used safely from one thread.
+ * However, it is safe to call any method of a Client from one thread while calling
+ * any method of a connected Client or Server from another thread.
+ * Note that this class does not ensure thread-safe use of the shared objects themselves.
+ *
+ * The objects shared with connected Clients and Servers can be accessed using
+ * a range-based for loop, with this Client as the range. For example:
+ *
+ *     for(auto & object : client) { process(object); }
+ */
+
 template <typename T>
 class Client
 {
@@ -106,6 +124,12 @@ public:
 
     Client(): p(std::make_shared<Detail::PortData<T>>()) {}
 
+    /*!
+     * \brief Destroys all Client's connections.
+     *
+     * The objects shared with other Clients are destroyed.
+     */
+
     ~Client()
     {
         for(const auto & link : p->links)
@@ -119,11 +143,17 @@ public:
         };
     }
 
+    /*!
+     * \brief Returns an iterator representing the first shared object.
+     */
     Iterator begin()
     {
         return Iterator(p->links.begin());
     }
 
+    /*!
+     * \brief Returns an iterator representing the end of the sequence of shared objects.
+     */
     Iterator end()
     {
         return Iterator(p->links.end());
@@ -138,6 +168,27 @@ private:
     shared_ptr<Detail::PortData<T>> p;
 };
 
+/*!
+ * \brief A connection endpoint which owns a shared object of type T.
+ *
+ * A Server owns an object of type T and shares this same object with all connected Clients.
+ *
+ * A Server can only be used safely from one thread.
+ * However, it is safe to call any method of a Server from one thread while calling
+ * any method of a connected Client from another thread.
+ * Note that this class does not ensure thread-safe use of the shared object itself.
+ *
+ * The shared object is accessed by "dereferencing" the Server. For example:
+ *
+ *     struct Object { int x; };
+ *
+ *     Server<Object> server;
+ *
+ *     server->x = 2;
+ *
+ *     Object a = *server;
+ */
+
 template <typename T>
 class Server
 {
@@ -146,13 +197,27 @@ public:
     friend void disconnect<T>(Client<T> & client, Server<T> & server);
     friend bool are_connected<T>(Client<T> &, Server<T> &);
 
+    /*!
+     * \brief Constructs Server with an externally allocated shared object.
+     *
+     * Progress: Blocking.
+     */
     Server(const shared_ptr<T> & data):
         p(std::make_shared<Detail::PortData<T>>()),
         d(data)
     {}
 
+    /*!
+     * \brief Constructs Server with an internally allocated default-constructed shared object.
+     *
+     * Progress: Blocking.
+     */
     Server(): Server(std::make_shared<T>()) {}
 
+    /*! \brief Destroyes all connections to the Server and its shared object.
+     *
+     * Progress: Blocking.
+     */
     ~Server()
     {
         for(const auto & link : p->links)
@@ -164,10 +229,26 @@ public:
         };
     }
 
+    /*!
+     * \brief Makes `*server` return a reference to the shared object.
+     *
+     * Progress: Wait-free.
+     */
+
     T & operator*() { return *d; }
 
+    /*!
+     * \brief Makes `server->member` access a member of the shared object.
+     *
+     * Progress: Wait-free.
+     */
     T * operator->() { return d.get(); }
 
+    /*!
+     * \brief Returns the shared object.
+     *
+     *  Progress: Wait-free.
+     */
     T & data()
     {
         return *d;
