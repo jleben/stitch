@@ -1,6 +1,10 @@
 The Stitch library provides basic building blocks for **communication** between threads. It has the ambition to be suitable for **real-time applications**: it aims to provide at least lock-free progress guarantees. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux).
 
+See [documentation](http://webhome.csc.uvic.ca/~jleben/stitch/) for details.
+
 See the [comparison with related software](#comparison-with-related-software) below.
+
+Here is a couple examples...
 
 ## Queues
 
@@ -52,10 +56,8 @@ Example:
 
 ## Streams
 
-Lock-free stream producers and consumers connected via queues in many-to-many patterns.
-
+Lock-free stream producers and consumers connected via queues.
 Each producer can be connected to multiple consumers and the other way around.
-
 Each consumer has a MPSC queue from which it pops and to which producers push.
 
 Example:
@@ -107,7 +109,7 @@ Example:
 
 ## Events
 
-An interface for waiting on multiple events. Events are provided by:
+An interface for waiting on multiple number and types of events. Events are provided by:
 
 - Queue classes (presented above)
 - `Timer` class (single-shot or periodic timer)
@@ -115,9 +117,7 @@ An interface for waiting on multiple events. Events are provided by:
 - `File` class (high-level interface to open, read and write files in the filesystem)
 - `Signal` class (internally generated events)
 
-The implementation is specific to the operating system. This is currently only implemented for Linux.
-
-Example with callbacks:
+Example:
 
     #include "stitch/events.h"
     #include "stitch/timer.h"
