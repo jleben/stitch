@@ -44,6 +44,9 @@ struct PortData
     Set<LinkPtr<T>> links;
 };
 
+template <typename T>
+using LinkIterator = typename Set<LinkPtr<T>>::Iterator;
+
 }
 
 template <typename T> class Client;
@@ -78,6 +81,29 @@ public:
     friend bool are_connected<T>(Client<T> &, Server<T> &);
     friend bool are_connected<T>(Client<T> &, Client<T> &);
 
+    class Iterator
+    {
+        Detail::LinkIterator<T> link;
+
+    public:
+        Iterator(const Detail::LinkIterator<T> & link): link(link) {}
+
+        Iterator & operator++()
+        {
+            ++link;
+        }
+
+        T & operator*()
+        {
+            return *((*link)->data);
+        }
+
+        bool operator!=(Iterator & other) const
+        {
+            return link != other.link;
+        }
+    };
+
     Client(): p(std::make_shared<Detail::PortData<T>>()) {}
 
     ~Client()
@@ -91,6 +117,16 @@ public:
                 peer->links.remove(peer_link);
             }
         };
+    }
+
+    Iterator begin()
+    {
+        return Iterator(p->links.begin());
+    }
+
+    Iterator end()
+    {
+        return Iterator(p->links.end());
     }
 
     template <typename F>
@@ -135,6 +171,10 @@ public:
                 peer->links.remove(link2);
         };
     }
+
+    T & operator*() { return *d; }
+
+    T * operator->() { return d.get(); }
 
     T & data()
     {
