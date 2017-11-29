@@ -22,7 +22,7 @@ static bool test_client()
 
     {
         int c = 0;
-        a.for_each([&](Data &){ ++c; });
+        for(Data & d : a) { ++c; };
         test.assert("Client a has no connections.", c == 0);
     }
 
@@ -31,20 +31,20 @@ static bool test_client()
 
     {
         int count = 0;
-        b.for_each([&](Data & d){ ++count; d.x = 1; });
+        for (auto & d : b){ ++count; d.x = 1; };
         test.assert("Client b has one connection.", count == 1);
     }
 
     {
         int count = 0;
-        c.for_each([&](Data & d){ ++count; d.x = 2; });
+        for (auto & d : c){ ++count; d.x = 2; };
         test.assert("Client c has one connection.", count == 1);
     }
 
     {
         int count = 0;
         unordered_set<int> values;
-        a.for_each([&](Data & d){ ++count; values.insert(d.x); });
+        for (auto & d : a){ ++count; values.insert(d.x); };
         test.assert("Client a has two connections.", count == 2);
         test.assert("Client a got value from b.", values.find(1) != values.end());
         test.assert("Client a got value from c.", values.find(2) != values.end());
@@ -71,27 +71,29 @@ static bool test_single_server()
 
     {
         int count = 0;
-        client1.for_each([&](Data & d){ ++count; d.x = 1; });
+        for(auto & d : client1) { ++count; d.x = 1; };
         test.assert("Client1 has one connection.", count == 1);
     }
 
     {
         int count = 0;
-        client2.for_each([&](Data & d){ ++count; d.x = 2; });
+        for(auto & d : client2) { ++count; d.x = 2; };
         test.assert("Client2 has one connection.", count == 1);
     }
 
-    test.assert("Server has correct data.", server.data().x == 2);
+    test.assert("Server has correct data.", server->x == 2);
 
-    server.data().x = 3;
+    server->x = 3;
 
-    client1.for_each([&](Data & d){
+    for(auto & d : client1)
+    {
         test.assert("Client 1 got data from server.", d.x = 3);
-    });
+    };
 
-    client2.for_each([&](Data & d){
+    for(auto & d : client2)
+    {
         test.assert("Client 2 got data from server.", d.x = 3);
-    });
+    };
 
     return test.success();
 }
@@ -114,13 +116,13 @@ static bool test_multiple_servers()
 
     {
         int count = 0;
-        client.for_each([&](Data & d){ ++count; d.x = count; });
+        for (auto & d : client) { ++count; d.x = count; };
         test.assert("Client has two connections.", count == 2);
     }
 
     unordered_set<int> values;
-    values.insert(server1.data().x);
-    values.insert(server2.data().x);
+    values.insert(server1->x);
+    values.insert(server2->x);
 
     test.assert("Servers have correct data.",
                 values.find(1) != values.end() && values.find(2) != values.end());

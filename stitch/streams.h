@@ -13,7 +13,7 @@ public:
 
     void push(const T & val)
     {
-        this->for_each([&](Queue & q){ q.push(val); });
+        for (Queue & q : *this) { q.push(val); }
     }
 
     // Lock-free
@@ -21,7 +21,7 @@ public:
     template <typename I>
     void push(int count, const I & input)
     {
-        this->for_each([&](Queue & q){ q.push(count, input); });
+        for (Queue & q : *this) { q.push(count, input); }
     }
 };
 
@@ -46,7 +46,8 @@ public:
 
     bool pop(T & v)
     {
-        return this->data().pop(v);    }
+        return this->data().pop(v);
+    }
 
     // Wait-free
 

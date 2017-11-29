@@ -129,15 +129,6 @@ public:
         return Iterator(p->links.end());
     }
 
-    template <typename F>
-    void for_each(F f)
-    {
-        for(const auto & link : p->links)
-        {
-            f(*link->data);
-        }
-    }
-
     bool has_connections() const
     {
         return !p->links.empty();
