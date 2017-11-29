@@ -1,4 +1,4 @@
-#include "../stitch/ports.h"
+#include "../stitch/connections.h"
 #include "../testing/testing.h"
 
 #include <atomic>
@@ -16,9 +16,9 @@ static bool test_client()
         int x = 0;
     };
 
-    ClientPort<Data> a;
-    ClientPort<Data> b;
-    ClientPort<Data> c;
+    Client<Data> a;
+    Client<Data> b;
+    Client<Data> c;
 
     {
         int c = 0;
@@ -62,9 +62,9 @@ static bool test_single_server()
 
     Test test;
 
-    ClientPort<Data> client1;
-    ClientPort<Data> client2;
-    ServerPort<Data> server;
+    Client<Data> client1;
+    Client<Data> client2;
+    Server<Data> server;
 
     connect(client1, server);
     connect(client2, server);
@@ -105,9 +105,9 @@ static bool test_multiple_servers()
 
     Test test;
 
-    ClientPort<Data> client;
-    ServerPort<Data> server1;
-    ServerPort<Data> server2;
+    Client<Data> client;
+    Server<Data> server1;
+    Server<Data> server2;
 
     connect(client, server1);
     connect(client, server2);
@@ -128,7 +128,7 @@ static bool test_multiple_servers()
     return test.success();
 }
 
-Testing::Test_Set port_tests()
+Testing::Test_Set connection_tests()
 {
     return {
         { "client", test_client },

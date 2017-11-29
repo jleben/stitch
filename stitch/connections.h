@@ -46,33 +46,33 @@ struct PortData
 
 }
 
-template <typename T> class ClientPort;
-template <typename T> class ServerPort;
+template <typename T> class Client;
+template <typename T> class Server;
 
 template <typename T>
-void connect(ClientPort<T> & client, ServerPort<T> & server);
+void connect(Client<T> & client, Server<T> & server);
 
 template <typename T>
-void disconnect(ClientPort<T> & client, ServerPort<T> & server);
+void disconnect(Client<T> & client, Server<T> & server);
 
 template <typename T>
-void connect(ClientPort<T> & client, ClientPort<T> & server);
+void connect(Client<T> & client, Client<T> & server);
 
 template <typename T>
-void disconnect(ClientPort<T> & client, ClientPort<T> & server);
+void disconnect(Client<T> & client, Client<T> & server);
 
 template <typename T>
-class ClientPort
+class Client
 {
 public:
-    friend void connect<T>(ClientPort<T> & client, ClientPort<T> & server);
-    friend void disconnect<T>(ClientPort<T> & client, ClientPort<T> & server);
-    friend void connect<T>(ClientPort<T> & client, ServerPort<T> & server);
-    friend void disconnect<T>(ClientPort<T> & client, ServerPort<T> & server);
+    friend void connect<T>(Client<T> & client, Client<T> & server);
+    friend void disconnect<T>(Client<T> & client, Client<T> & server);
+    friend void connect<T>(Client<T> & client, Server<T> & server);
+    friend void disconnect<T>(Client<T> & client, Server<T> & server);
 
-    ClientPort(): p(std::make_shared<Detail::PortData<T>>()) {}
+    Client(): p(std::make_shared<Detail::PortData<T>>()) {}
 
-    ~ClientPort()
+    ~Client()
     {
         for(const auto & link : p->links)
         {
@@ -99,18 +99,18 @@ private:
 };
 
 template <typename T>
-class ServerPort
+class Server
 {
 public:
-    friend void connect<T>(ClientPort<T> & client, ServerPort<T> & server);
-    friend void disconnect<T>(ClientPort<T> & client, ServerPort<T> & server);
+    friend void connect<T>(Client<T> & client, Server<T> & server);
+    friend void disconnect<T>(Client<T> & client, Server<T> & server);
 
-    ServerPort():
+    Server():
         p(std::make_shared<Detail::PortData<T>>()),
         d(std::make_shared<T>())
     {}
 
-    ~ServerPort()
+    ~Server()
     {
         for(const auto & link : p->links)
         {
@@ -132,7 +132,7 @@ private:
 };
 
 template <typename T>
-void connect(ClientPort<T> & client, ServerPort<T> & server)
+void connect(Client<T> & client, Server<T> & server)
 {
     {
         auto link = std::make_shared<Detail::Link<T>>();
@@ -148,7 +148,7 @@ void connect(ClientPort<T> & client, ServerPort<T> & server)
 }
 
 template <typename T>
-void disconnect(ClientPort<T> & client, ServerPort<T> & server)
+void disconnect(Client<T> & client, Server<T> & server)
 {
     {
         auto link = client.p->find_link(server.p);
@@ -163,7 +163,7 @@ void disconnect(ClientPort<T> & client, ServerPort<T> & server)
 }
 
 template <typename T>
-void connect(ClientPort<T> & client1, ClientPort<T> & client2)
+void connect(Client<T> & client1, Client<T> & client2)
 {
     if (&client1 == &client2)
         return;
@@ -185,7 +185,7 @@ void connect(ClientPort<T> & client1, ClientPort<T> & client2)
 }
 
 template <typename T>
-void disconnect(ClientPort<T> & client1, ClientPort<T> & client2)
+void disconnect(Client<T> & client1, Client<T> & client2)
 {
     {
         auto link = client1.p->find_link(client2.p);
