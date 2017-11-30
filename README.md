@@ -1,175 +1,99 @@
 The Stitch library provides basic building blocks for **communication** between threads. It has the ambition to be suitable for **real-time applications**: it aims to provide at least lock-free progress guarantees. It has the ambition to become fully available on **all major platforms** (although part of it is currently limited to Linux).
 
-See [documentation](http://webhome.csc.uvic.ca/~jleben/stitch/) for details.
+Stitch provides:
+
+- Lock-free and wait-free thread-safe data structures (queue, atom, set, ...)
+- Dynamically established communication channels between threads, with any user-provided type as the channel.
+- Waiting for multiple internal or external events at once (elapsed time, files ready to read/write, internally generated events).
+
+See the [documentation](http://webhome.csc.uvic.ca/~jleben/stitch/) for details.
 
 See the [comparison with related software](#comparison-with-related-software) below.
 
 Here is a couple examples...
 
-## Queues
+## Shared data structures
 
-- `SPSC_Queue`: A wait-free single-producer-single-consumer queue. Most efficient.
-- `MPMC_Queue`: A wait-free multi-producer-multi-consumer queue.
-- `MPSC_Queue`: A wait-free multi-producer-single-consumer queue. More efficient than the MPMC queue.
+    struct Data { int x, y, z; }
 
-All queues have the same interface, they only differ in how many producer and consumer threads can use them at the same time.
+    Stitch::Atom<Data> d;
+    Stitch::SPSC_Queue<int> q;
 
-Example:
-
-    #include "stitch/spsc_queue.h"
-    #include <thread>
-    #include <chrono>
-    #include <iostream>
-
-    using namespace Stitch;
-    using namespace std;
-
-    int main()
+    thread t1([&]()
     {
-        // Queue with capacity 100 items
-        SPSC_Queue<int> q(100);
+        d.store({ 1, 2, 3 }); // Lock-free
+        q.push(123); // Wait-free
+    });
 
-        // Producer thread
-        thread t1([&]()
-        {
-            for (int i = 0; i < 5; ++i)
-            {
-                q.push(i);
-                this_thread::sleep_for(chrono::milliseconds(500));
-            }
-        });
-
-        // Consumer thread
-        thread t2([&]()
-        {
-            for (int i = 0; i < 5; ++i)
-            {
-                int v;
-                while(!q.pop(v))
-                    this_thread::sleep_for(chrono::milliseconds(100));
-                cout << v << endl;
-            }
-        });
-
-        t1.join(); t2.join();
-    }
-
-## Streams
-
-Lock-free stream producers and consumers connected via queues.
-Each producer can be connected to multiple consumers and the other way around.
-Each consumer has a MPSC queue from which it pops and to which producers push.
-
-Example:
-
-    #include "stitch/streams.h"
-    #include <thread>
-    #include <chrono>
-    #include <iostream>
-
-    using namespace Stitch;
-    using namespace std;
-
-    int main()
+    thread t2([&]()
     {
-        Stream_Producer<int> producer;
-        Stream_Consumer<int> consumer(5);
+        Data a = d.load(); // Lock-free
+        int b;
+        bool ok = q.pop(b); // Wait-free
+    });
 
-        // Connect producer and consumer. This is thread-safe.
-        connect(producer, consumer);
 
-        thread t1([&]()
+## Dynamic Connections
+
+    using Mailbox = Stitch::MPSC_Queue<int>;
+    Stitch::Server<Mailbox> server1(new Mailbox(100));
+    Stitch::Server<Mailbox> server2(new Mailbox(100));
+    Stitch::Client<Mailbox> client1;
+    Stitch::Client<Mailbox> client2;
+
+    Stitch::connect(client1, server1);
+    Stitch::connect(client1, server2);
+    Stitch::connect(client2, server2);
+
+    thread t1([&]()
+    {
+        for(auto & destination : client1) // Lock-free
         {
-            for (int i = 0; i < 5; ++i)
-            {
-                producer.push(i);
-                this_thread::sleep_for(chrono::milliseconds(500));
-            }
-        });
+            destination.push(123); // Wait-free
+        }
 
-        thread t2([&]()
+        for(auto & destination : client2) // Lock-free
         {
-            for (int i = 0; i < 5; ++i)
-            {
-                int v;
-                while(!consumer.pop(v))
-                    this_thread::sleep_for(chrono::milliseconds(100));
-                cout << v << endl;
-            }
-        });
+            destination.push(321); // Wait-free
+        }
+    });
 
-        t1.join(); t2.join();
+    thread t2([&]()
+    {
+        int data = server1->pop(); // Wait-free
+    });
 
-        // Disconnect producer and consumer. This is thread-safe.
-        disconnect(producer, consumer);
-
-        // When a producer or consumer is destroyed,
-        // it is automatically disconnected, in a thread-safe manner.
-    }
+    thread t3([&]()
+    {
+        int data = server2->pop(); // Wait-free
+    });
 
 ## Events
 
-An interface for waiting on multiple number and types of events. Events are provided by:
+    Stitch::Timer timer;
+    Stitch::Signal signal;
 
-- Queue classes (presented above)
-- `Timer` class (single-shot or periodic timer)
-- `File_Event` class (from any file descriptor)
-- `File` class (high-level interface to open, read and write files in the filesystem)
-- `Signal` class (internally generated events)
+    timer.start(chrono::milliseconds(1000));
 
-Example:
-
-    #include "stitch/events.h"
-    #include "stitch/timer.h"
-    #include "stitch/spsc_queue.h"
-    #include <thread>
-    #include <chrono>
-    #include <iostream>
-
-    using namespace Stitch;
-    using namespace std;
-
-    int main()
+    thread t1([&]()
     {
-        Timer timer;
-        SPSC_Queue<int> q(100);
+        this_thread::sleep_for(chrono::milliseconds(500));
+        signal.notify();
+    });
 
-        // Start periodic timer
-        timer.start(chrono::milliseconds(1000), true);
+    Stitch::Event_Reactor reactor;
 
-        thread t1([&]()
-        {
-            for (int i = 0; i < 10; ++i)
-            {
-                q.push(i);
-                this_thread::sleep_for(chrono::milliseconds(300));
-            }
-        });
+    reactor.subscribe(timer.event(), [&]()
+    {
+        cout << "Timer" << endl;
+    });
 
-        Event_Reactor reactor;
+    reactor.subscribe(signal.event(), [&]()
+    {
+        cout << "Signal" << endl;
+    });
 
-        reactor.subscribe(timer.event(), [&]()
-        {
-            cout << "Timer" << endl;
-        });
-
-        reactor.subscribe(q.write_event(), [&]()
-        {
-            int v;
-            q.pop(v);
-            cout << "Value: " << v << endl;
-            if (v >= 9)
-            {
-                cout << "Quit." << endl;
-                reactor.quit();
-            }
-        });
-
-        reactor.run(Event_Reactor::WaitUntilQuit);
-
-        t1.join();
-    }
-
+    reactor.run(Stitch::Event_Reactor::Wait);
 
 ## Comparison with Related Software
 
