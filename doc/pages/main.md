@@ -1,5 +1,5 @@
-Stitch {#mainpage}
-======
+Introduction {#mainpage}
+============
 
 Stitch is a C++ library that provides basic building blocks for communication between threads. It aims to be suitable for real-time applications; all the time-critical operations have at least the lock-free progress guarantee and low average time complexity.
 
@@ -32,8 +32,12 @@ Example:
 
     Stitch::connect(client, server);
 
-    thread t1([&](){ server->store(1); }
-    thread t2([&](){ for(auto & data : client) { cout << data.load() << endl; } }
+    thread t1([&](){ server->store(1); });
+
+    thread t2([&]()
+    {
+        for(auto & data : client) { cout << data.load() << endl; }
+    });
 
 Events
 ------
@@ -50,3 +54,30 @@ The [Event][] class is a generic representation of an event source. Instances of
 You can wait for a single event synchronously using the [wait](@ref Stitch::wait(const Stitch::Event&)) function. Waiting and reacting to multiple events is enabled by the [Event_Reactor](@ref Stitch::Event_Reactor) class.
 
 [Event]: @ref Stitch::Event
+
+Example:
+
+    Stitch::Timer timer;
+    Stitch::Signal signal;
+
+    timer.start(chrono::milliseconds(1000));
+
+    thread t1([&]()
+    {
+        this_thread::sleep_for(chrono::milliseconds(500));
+        signal.notify();
+    });
+
+    Stitch::Event_Reactor reactor;
+
+    reactor.subscribe(timer.event(), [&]()
+    {
+        cout << "Timer" << endl;
+    });
+
+    reactor.subscribe(signal.event(), [&]()
+    {
+        cout << "Signal" << endl;
+    });
+
+    reactor.run(Stitch::Event_Reactor::Wait);
