@@ -1,4 +1,3 @@
-#include "queue.h"
 #include "signal.h"
 
 #include <cmath>
@@ -15,7 +14,7 @@ using std::atomic;
 // FIXME: Use atomic_flag instead of atomic<bool>
 
 template <typename T>
-class MPMC_Queue : public Queue<T>
+class MPMC_Queue
 {
 public:
     static bool is_lockfree()
@@ -43,17 +42,17 @@ public:
         d_worker.join();
     }
 
-    bool full() override
+    bool full()
     {
         return d_writable < 1;
     }
 
-    bool empty() override
+    bool empty()
     {
         return d_readable < 1;
     }
 
-    bool push(const T & value) override
+    bool push(const T & value)
     {
         int writable = d_writable.fetch_sub(1);
         bool ok = writable > 0;
@@ -74,7 +73,7 @@ public:
         return true;
     }
 
-    bool pop(T & value) override
+    bool pop(T & value)
     {
         int readable = d_readable.fetch_sub(1);
         bool ok = readable > 0;

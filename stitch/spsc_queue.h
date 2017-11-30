@@ -1,4 +1,3 @@
-#include "queue.h"
 #include "signal.h"
 
 #include <atomic>
@@ -18,7 +17,7 @@ All methods have wait-free progress guarantee.
 */
 
 template <typename T>
-class SPSC_Queue : public Queue<T>
+class SPSC_Queue
 {
 public:
 
@@ -44,7 +43,7 @@ public:
     \brief Whether the queue is full.
     */
 
-    bool full() override
+    bool full()
     {
         return !writable_size();
     }
@@ -54,7 +53,7 @@ public:
     \brief Whether the queue is empty.
     */
 
-    bool empty() override
+    bool empty()
     {
         return !readable_size();
     }
@@ -68,7 +67,7 @@ public:
     \return True on success, false on failure.
     */
 
-    bool push(const T & value) override
+    bool push(const T & value)
     {
         if (!writable_size())
             return false;
@@ -137,7 +136,7 @@ public:
     \return True on success, false on failure.
     */
 
-    bool pop(T & value) override
+    bool pop(T & value)
     {
         if (!readable_size())
             return false;
