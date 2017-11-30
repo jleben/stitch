@@ -57,6 +57,14 @@ public:
     }
 
     /*!
+     * \brief Amount of elements in the queue.
+     */
+    int size()
+    {
+        return readable_size();
+    }
+
+    /*!
     \brief Adds an element to the back of the queue.
 
     The element \p value is added to the back of the queue.
