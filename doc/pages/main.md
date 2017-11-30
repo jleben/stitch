@@ -17,36 +17,9 @@ The foundation of thread communication are data structures that can be collabora
 Connections
 -----------
 
-Connections solve the problem of passing a reference to a shared object to multiple threads and managing the object's lifetime.
-Shared objects are created on-demand when connections between threads are established, and destroyed automatically when the connections that use them are destroyed.
+Connections solve the problem of passing a reference to a shared object to multiple threads and managing the shared object's lifetime. A connection is an abstraction for the sharing of an object between two threads. When two threads are connected, they get access to the same shared object. Shared objects are created and destroyed as needed.
 
-The endpoints of connections are represented by the Server and Client classes:
-
-- [Server](@ref Stitch::Server)
-- [Client](@ref Stitch::Client)
-
-Connections are managed using the following functions:
-
-- [connect](@ref Stitch::connect)
-- [disconnect](@ref Stitch::disconnect)
-
-A connection is also destroyed automatically when either of its endpoints is destroyed.
-
-A Server owns a shared object and provides this same object to all Clients that connect to it. The lifetime of the shared object is equal to the lifetime of the Server.
-
-When two Clients are connected, a shared object is associated specifically with this connection, and it is destroyed as soon as they are disconnected or either of them is destroyed.
-
-### Stream producers and consumers
-
-Stitch has a couple handy subclasses of Server and Client to model connections between stream producers and consumers:
-
-- [Stream_Producer](@ref Stitch::Stream_Producer)
-- [Stream_Consumer](@ref Stitch::Stream_Consumer)
-
-Stream_Consumer is a Server and Stream_Producer is a Client and they share a MPSC_Queue.
-
-This implements the flow of data in the [Actor Model][]: the queue represents the mailbox of the receiver of messages (consumer) and messages can arrive from multiple senders (producers).
-
+Read more about @subpage connections ...
 
 Events
 ------
