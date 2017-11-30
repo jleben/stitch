@@ -43,9 +43,9 @@ Stitch has a couple handy subclasses of Server and Client to model connections b
 - [Stream_Producer](@ref Stitch::Stream_Producer)
 - [Stream_Consumer](@ref Stitch::Stream_Consumer)
 
-Stream_Consumer is a Server and Stream_Producer is a Client, with MPSC_Queue as the shared object type.
+Stream_Consumer is a Server and Stream_Producer is a Client and they share a MPSC_Queue.
 
-This implements the flow of data in an actor model: the queue represents the mailbox of the receiver of messages (consumer) and messages can arrive from multiple senders (producers).
+This implements the flow of data in the [Actor Model][]: the queue represents the mailbox of the receiver of messages (consumer) and messages can arrive from multiple senders (producers).
 
 
 Events
@@ -63,3 +63,4 @@ The [Event][] class is a generic representation of an event source. Instances of
 You can wait for a single event synchronously using the [wait](@ref Stitch::wait(const Stitch::Event&)) function. Waiting and reacting to multiple events is enabled by the [Event_Reactor](@ref Stitch::Event_Reactor) class.
 
 [Event]: @ref Stitch::Event
+[Actor Model]: https://en.wikipedia.org/wiki/Actor_model
