@@ -1,19 +1,29 @@
 #include "connections.h"
 #include "mpsc_queue.h"
+#include "signal.h"
 
 namespace Stitch {
 
 template <typename T>
-class Stream_Producer : public Client<MPSC_Queue<T>>
+struct Stream_Buffer
+{
+    Stream_Buffer(int capacity): queue(capacity) {}
+
+    MPSC_Queue<T> queue;
+    Signal signal;
+};
+
+template <typename T>
+class Stream_Producer : public Client<Stream_Buffer<T>>
 {
 public:
-    using Queue = MPSC_Queue<T>;
+    using Buffer = Stitch::Stream_Buffer<T>;
 
     // Lock-free
 
     void push(const T & val)
     {
-        for (Queue & q : *this) { q.push(val); }
+        for (Buffer & buf : *this) { buf.queue.push(val); buf.signal.notify(); }
     }
 
     // Lock-free
@@ -21,32 +31,32 @@ public:
     template <typename I>
     void push(int count, const I & input)
     {
-        for (Queue & q : *this) { q.push(count, input); }
+        for (Buffer & buf : *this) { buf.queue.push(count, input); buf.signal.notify(); }
     }
 };
 
 template <typename T>
-class Stream_Consumer : public Server<MPSC_Queue<T>>
+class Stream_Consumer : public Server<Stream_Buffer<T>>
 {
 public:
-    using Queue = MPSC_Queue<T>;
+    using Buffer = Stitch::Stream_Buffer<T>;
 
     Stream_Consumer(int capacity):
-        Server<Queue>(std::make_shared<Queue>(capacity))
+        Server<Buffer>(std::make_shared<Buffer>(capacity))
     {}
 
     // Wait-free
 
     bool empty()
     {
-        return this->data().empty();
+        return this->data().queue.empty();
     }
 
     // Wait-free
 
     bool pop(T & v)
     {
-        return this->data().pop(v);
+        return this->data().queue.pop(v);
     }
 
     // Wait-free
@@ -54,12 +64,12 @@ public:
     template <typename O>
     bool pop(int count, const O & output)
     {
-        return this->data().pop(count, output);
+        return this->data().queue.pop(count, output);
     }
 
     Event receive_event()
     {
-        return this->data().event();
+        return this->data().signal.event();
     }
 };
 

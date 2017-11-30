@@ -1,5 +1,3 @@
-#include "signal.h"
-
 #include <cmath>
 #include <atomic>
 #include <vector>
@@ -63,9 +61,6 @@ public:
         d_data[pos] = value;
         d_journal[pos] = true;
 
-        // This may be useless, because an earlier push may not have completed.
-        d_public_io_event.notify();
-
         return true;
     }
 
@@ -85,8 +80,6 @@ public:
             pos = (pos + 1) & d_wrap_mask;
         }
 
-        d_public_io_event.notify();
-
         return true;
     }
 
@@ -104,7 +97,6 @@ public:
         d_journal[pos] = false;
 
         d_writable.fetch_add(1);
-        d_public_io_event.notify();
 
         return true;
     }
@@ -135,12 +127,9 @@ public:
 
         d_tail = pos;
         d_writable.fetch_add(count);
-        d_public_io_event.notify();
 
         return true;
     }
-
-    Event event() { return d_public_io_event.event(); }
 
 private:
     bool reserve_write(int count, int & pos)
@@ -175,8 +164,6 @@ private:
     atomic<int> d_writable { 0 };
 
     int d_tail { 0 };
-
-    Signal d_public_io_event;
 };
 
 }
