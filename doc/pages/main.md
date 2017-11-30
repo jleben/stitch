@@ -17,9 +17,23 @@ The foundation of thread communication are data structures that can be collabora
 Connections
 -----------
 
-Connections solve the problem of passing a reference to a shared object to multiple threads and managing the shared object's lifetime. A connection is an abstraction for the sharing of an object between two threads. When two threads are connected, they get access to the same shared object. Shared objects are created and destroyed as needed.
+Connections solve the problem of passing a reference to a shared object to multiple threads and managing the shared object's lifetime.
+Connections improve modularity: they enable writing classes which can communicate in a thread-safe manner without the awareness of each other's existence.
 
-Read more about @subpage connections ...
+Endpoints of connections are represented by the [Server](@ref Stitch::Server) and [Client](@ref Stitch::Client) classes,
+and connections are managed by [connect](@ref Stitch::connect) and [disconnect](@ref Stitch::disconnect).
+
+Read more on the @subpage connections page...
+
+Example:
+
+    Stitch::Server<atomic<int>> server;
+    Stitch::Client<atomic<int>> client;
+
+    Stitch::connect(client, server);
+
+    thread t1([&](){ server->store(1); }
+    thread t2([&](){ for(auto & data : client) { cout << data.load() << endl; } }
 
 Events
 ------
@@ -36,4 +50,3 @@ The [Event][] class is a generic representation of an event source. Instances of
 You can wait for a single event synchronously using the [wait](@ref Stitch::wait(const Stitch::Event&)) function. Waiting and reacting to multiple events is enabled by the [Event_Reactor](@ref Stitch::Event_Reactor) class.
 
 [Event]: @ref Stitch::Event
-[Actor Model]: https://en.wikipedia.org/wiki/Actor_model
