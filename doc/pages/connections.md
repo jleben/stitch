@@ -1,8 +1,7 @@
 Connections {#connections}
 ===========
 
-Connections solve the problem of passing a reference to a shared object to multiple threads and managing the object's lifetime.
-Connections improve modularity: they enable writing classes which can communicate in a thread-safe manner without the awareness of each other's existence.
+Connections help with dynamically managing the communication of one thread with multiple other threads. They improve modularity: they enable writing classes which are agnostic of who they communicate with, while an external process manages their connections with multiple other objects.
 
 A connection represents the sharing of an object between two threads.
 However, each of the two threads only needs to interact with an object that represents one endpoint of the connection.
@@ -15,7 +14,7 @@ The endpoints of connections are represented by the Server and Client classes:
 
 A Server owns a shared object and provides this same object to all Clients that connect to it. The lifetime of the shared object is equal to the lifetime of the Server.
 
-In contrast, when two Clients are connected to each other, a shared object is associated specifically with this connection, and it is destroyed as soon as they are disconnected or either of them is destroyed.
+In contrast, a Client gets access to a separate shared object for each of its connections. A connection to a Server provides it with the Server's shared object. A connection with another Client provides it with an individual shared object exclusive to this connection, and discarded when the Clients are disconnected.
 
 Connections are managed using the following functions:
 
@@ -70,7 +69,7 @@ This example demonstrates the effect of individual operations:
     // However, the server's object persists and is still shared with client2.
 
 
-Connections are particularily useful when writing classes that can communicate with each other from different threads. For example:
+Connections are particularily useful when writing classes that can dynamically establish connections across multiple threads, while the communicating objects are agnostic of each other. For example:
 
     struct Data { std::atomic<int> x };
 
@@ -112,9 +111,11 @@ Connections are particularily useful when writing classes that can communicate w
     }
 
     Writer writer; writer.run();
-    Reader reader; reader.run();
+    Reader reader1; reader1.run();
+    Reader reader2; reader2.run();
 
-    Stitch::connect(reader.sink, writer.source);
+    Stitch::connect(reader1.sink, writer.source);
+    Stitch::connect(reader2.sink, writer.source);
 
 ### Stream producers and consumers
 

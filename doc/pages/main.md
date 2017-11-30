@@ -17,8 +17,7 @@ The foundation of thread communication are data structures that can be collabora
 Connections
 -----------
 
-Connections solve the problem of passing a reference to a shared object to multiple threads and managing the shared object's lifetime.
-Connections improve modularity: they enable writing classes which can communicate in a thread-safe manner without the awareness of each other's existence.
+Connections help with dynamically managing the communication of one thread with multiple other threads. They improve modularity: they enable writing classes which are agnostic of who they communicate with, while an external process manages their connections with multiple other objects.
 
 Endpoints of connections are represented by the [Server](@ref Stitch::Server) and [Client](@ref Stitch::Client) classes,
 and connections are managed by [connect](@ref Stitch::connect) and [disconnect](@ref Stitch::disconnect).
@@ -27,14 +26,18 @@ Read more on the @subpage connections page...
 
 Example:
 
-    Stitch::Server<atomic<int>> server;
+    Stitch::Server<atomic<int>> server1;
+    Stitch::Server<atomic<int>> server2;
     Stitch::Client<atomic<int>> client;
 
-    Stitch::connect(client, server);
+    Stitch::connect(client, server1);
+    Stitch::connect(client, server2);
 
-    thread t1([&](){ server->store(1); });
+    thread s1([&](){ server->store(1); });
 
-    thread t2([&]()
+    thread s2([&](){ server->store(2); });
+
+    thread c([&]()
     {
         for(auto & data : client) { cout << data.load() << endl; }
     });
