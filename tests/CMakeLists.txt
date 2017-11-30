@@ -1,4 +1,11 @@
 
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/testing/testing.cpp)
+    message(FATAL_ERROR "The testing submodule is not present. "
+        "Please check out submodules recursively using the following command:\n"
+        "git submodule update --init --recursive"
+    )
+endif()
+
 add_library(testing STATIC ../testing/testing.cpp)
 set_property(TARGET testing PROPERTY CXX_STANDARD 14)
 
