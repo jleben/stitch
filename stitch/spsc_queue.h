@@ -1,5 +1,3 @@
-#include "signal.h"
-
 #include <atomic>
 #include <vector>
 
@@ -74,7 +72,6 @@ public:
 
         d_data[d_write_pos] = value;
         advance_write(1);
-        d_signal.notify();
         return true;
     }
 
@@ -121,7 +118,6 @@ public:
         }
 
         d_write_pos = w;
-        d_signal.notify();
         return true;
     }
 
@@ -193,8 +189,6 @@ public:
         return true;
     }
 
-    Event write_event() { return d_signal.event(); }
-
 private:
     int readable_size() const
     {
@@ -237,7 +231,6 @@ private:
     atomic<int> d_write_pos { 0 };
     atomic<int> d_read_pos { 0 };
     vector<T> d_data;
-    Signal d_signal;
 };
 
 }

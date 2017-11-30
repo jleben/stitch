@@ -124,33 +124,36 @@ static bool test_bulk()
     return test.success();
 }
 
-static bool test_multi_thread()
+static bool test_stress()
 {
     Testing::Test test;
 
-    SPSC_Queue<int> q(10);
+    int rep_count = 100;
+    int rep_size = 10;
+
+    SPSC_Queue<int> q(rep_size * 5);
 
     thread producer = thread([&]()
     {
-        for (int rep = 0; rep < 3; ++rep)
+        for (int rep = 0; rep < rep_count; ++rep)
         {
             test.assert("Queue is empty", q.empty());
 
-            for (int i = 0; i < 7; ++i)
+            for (int i = 0; i < rep_size; ++i)
             {
                 test.assert("Pushed " + to_string(i), q.push(i));
             }
 
-            this_thread::sleep_for(chrono::milliseconds(100));
+            this_thread::sleep_for(chrono::milliseconds(10));
         }
     });
 
-    for (int rep = 0; rep < 3; ++rep)
+    for (int rep = 0; rep < rep_count; ++rep)
     {
-        for (int i = 0; i < 7; ++i)
+        for (int i = 0; i < rep_size; ++i)
         {
             while (q.empty())
-                wait(q.write_event());
+                this_thread::sleep_for(chrono::milliseconds(5));
 
             int v;
             bool ok = q.pop(v);
@@ -175,6 +178,6 @@ Testing::Test_Set spsc_queue_tests()
         { "full_empty", test_full_empty },
         { "single_thread", test_single_thread },
         { "bulk", test_bulk },
-        { "multi_thread", test_multi_thread }
+        { "stress", test_stress }
     };
 }
