@@ -15,6 +15,25 @@ using std::vector;
 
 class Event_Reactor;
 
+/*! \brief Generic representation of all kinds of event sources.
+
+There are two basic kinds of events, both of which are represented
+by the Event class:
+- Momentary: Representing momentary occurrences, such as an elapsed point in time.
+- Conditional: Representing an ongoing condition, such as a FIFO file having data to read.
+
+An event can be in one of two states: active or inactive.
+Methods like \ref wait and \ref Event_Reactor::run, which are
+called "handlers", observe and modify this state.
+
+A momentary event becomes active when the underlying moment occurs (e.g. a timer expires),
+and is immediately deactivated by a handler.
+A conditional event becomes active when the underlying condition begins
+(e.g. a FIFO file becomes ready to read)
+and is deactivated by handlers only after the condition ends
+(e.g. all data in the file is read and there is no more data to read).
+*/
+
 class Event
 {
 public:
@@ -24,8 +43,23 @@ public:
     function<void()> clear;
 };
 
-/*! \brief Wait for a single event. */
+/*! \brief Waits for a single event to become active.
+
+If the event is momentary, it is deactivated.
+
+\sa
+- \ref Event, for details on event kinds and  states.
+- \ref Event_Reactor, for waiting on multiple events.
+*/
+
 void wait(const Event &);
+
+/*! \brief Waits for multiple events to become active and invokes subscribed callbacks.
+
+\sa
+- \ref Event, for details on event kinds and  states.
+- \ref wait, for waiting on a single event without a callback.
+*/
 
 class Event_Reactor
 {
@@ -42,8 +76,42 @@ public:
     Event_Reactor();
     ~Event_Reactor();
 
-    void subscribe(const Event & event, Callback);
-    void run(Mode = NoWait);
+    /*! \brief Subscribes `callback` to be invoked when `event` is activated.
+    */
+    void subscribe(const Event & event, Callback callback);
+
+    /*! \brief Monitors event activations and invokes subscribed callbacks.
+
+      The \ref Mode parameter has the following effect:
+
+      - NoWait: Handles each currently active event once and returns without waiting at all.
+      - Wait: If no event with a subscription is currently active,
+        waits until at least one is activated, handles each active event once and returns.
+      - WaitUntilQuit: Keeps handling all active events until \ref quit is called,
+        at which point it returns immediately.
+
+      This method is "fair" in the following sense.
+      It handles each active event once
+      before handling the same event again.
+
+      "Handling" an active event means invoking the subscribed callback
+      and deactivating momentary events.
+
+      \sa \ref Event, for details on event kinds and  states.
+    */
+    void run(Mode mode = NoWait);
+
+    /*! \brief Signals the ongoing \ref run method to terminate.
+     *
+     * When called from a callback during an execution of \ref run,
+     * makes the latter return immediately after the callback returns.
+     *
+     * When called otherwise, it has no effect.
+     *
+     * Note that this class is not thread-safe, which means that the only way
+     * to call this method during an execution of \ref run is from within
+     * a callback.
+     */
     void quit();
 
 private:
