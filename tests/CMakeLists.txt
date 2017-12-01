@@ -27,6 +27,7 @@ set(test_sources
     test_signal.cpp
     test_timer.cpp
     test_file.cpp
+    test_event_reactor.cpp
 )
 
 make_test(tester "${test_sources}")

@@ -79,7 +79,7 @@ void Event_Reactor::run(Mode mode)
         if (result < 0)
             throw std::runtime_error("'epoll_wait' failed.");
 
-        for (int i = 0; i < result; ++i)
+        for (int i = 0; i < result && d_running; ++i)
         {
             auto & options = d_ready_events[i];
             auto data = reinterpret_cast<Event_Data*>(options.data.ptr);

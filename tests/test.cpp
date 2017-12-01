@@ -12,6 +12,7 @@ Test_Set connection_tests();
 Test_Set signal_tests();
 Test_Set timer_tests();
 Test_Set file_tests();
+Test_Set event_reactor_tests();
 
 int main(int argc, char * argv[])
 {
@@ -26,6 +27,7 @@ int main(int argc, char * argv[])
         { "signal", signal_tests() },
         { "timer", timer_tests() },
         { "file", file_tests() },
+        { "event-reactor", event_reactor_tests() },
     };
 
     return Testing::run(tests, argc, argv);
