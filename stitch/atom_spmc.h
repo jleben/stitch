@@ -9,18 +9,27 @@ namespace Stitch {
 using std::atomic;
 using std::array;
 
-// This class uses versioning to detect contention.
-// Harmful contention will be detected as long
-// as 'store' is executed less than N times
-// during a 'load',
-// where N  is the total number of possible versions.
-// A version has type uintptr_t.
+/*!
+\brief Lock-free atomically updated container of a single value of type T.
+
+Type T must be default-constructible.
+
+This class uses versioning to detect thread contention.
+It will operate correctly
+as long as `store` is executed less than N times
+during a single `load`,
+where N  is the total number of possible versions.
+A version has type uintptr_t.
+*/
 
 template <typename T>
 class SPMC_Atom
 {
 public:
 
+    /*!
+     * \brief Constructs the container with a default-constructed value.
+     */
     SPMC_Atom()
     {
         if (!writing->version_a.is_lock_free())
@@ -29,6 +38,11 @@ public:
 
     // Wait-free
 
+    /*!
+    \brief Store `value` in the container.
+
+    Progress: Lock-free.
+    */
     void store(const T & value)
     {
         ++version;
@@ -40,6 +54,11 @@ public:
 
     // Lock-free
 
+    /*!
+    \brief Load the last value stored in the container.
+
+    Progress: Lock-free.
+    */
     T load()
     {
         T value;
