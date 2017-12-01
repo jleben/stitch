@@ -16,8 +16,8 @@ Type T must be default-constructible.
 
 This class uses versioning to detect thread contention.
 It will operate correctly
-as long as `store` is executed less than N times
-during a single `load`,
+as long as \ref store is executed less than N times
+during a single \ref load,
 where N  is the total number of possible versions.
 A version has type uintptr_t.
 */
