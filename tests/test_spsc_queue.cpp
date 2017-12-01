@@ -22,6 +22,7 @@ static bool test_full_empty()
 
     test.assert("Queue empty.", q.empty());
     test.assert("Queue not full.", !q.full());
+    test.assert("Queue size is 0.", q.size() == 0);
 
     {
         int v;
@@ -35,6 +36,7 @@ static bool test_full_empty()
 
     test.assert("Queue full.", q.full());
     test.assert("Queue not empty.", !q.empty());
+    test.assert("Queue size equals capacity.", q.size() == q.capacity());
 
     test.assert("Can not push to empty queue.", !q.push(111));
 
@@ -46,6 +48,10 @@ static bool test_full_empty()
         if (ok)
             test.assert("Popped " + to_string(v), v == i);
     }
+
+    test.assert("Queue empty.", q.empty());
+    test.assert("Queue not full.", !q.full());
+    test.assert("Queue size is 0.", q.size() == 0);
 
     return test.success();
 }
@@ -59,11 +65,14 @@ static bool test_single_thread()
     for (int rep = 0; rep < 2; ++rep)
     {
         test.assert("Queue empty.", q.empty());
+        test.assert("Queue size is 0.", q.size() == 0);
 
         for (int i = 0; i < 7; ++i)
         {
             test.assert("Pushed " + to_string(i), q.push(i));
         }
+
+        test.assert("Queue size is 7.", q.size() == 7);
 
         for (int i = 0; i < 7; ++i)
         {
