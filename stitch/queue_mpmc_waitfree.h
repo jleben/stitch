@@ -14,7 +14,7 @@ using std::atomic;
 // FIXME: Use atomic_flag instead of atomic<bool>
 
 template <typename T>
-class MPMC_Queue
+class Waitfree_MPMC_Queue
 {
 public:
     static bool is_lockfree()
@@ -22,7 +22,7 @@ public:
         return ATOMIC_INT_LOCK_FREE && ATOMIC_BOOL_LOCK_FREE;
     }
 
-    MPMC_Queue(int size):
+    Waitfree_MPMC_Queue(int size):
         d_data(next_power_of_two(size)),
         d_journal(d_data.size()),
         d_wrap_mask(d_data.size() - 1),
@@ -32,10 +32,10 @@ public:
         for (auto & val : d_journal)
             val = false;
 
-        d_worker = std::thread(&MPMC_Queue::work, this);
+        d_worker = std::thread(&Waitfree_MPMC_Queue::work, this);
     }
 
-    ~MPMC_Queue()
+    ~Waitfree_MPMC_Queue()
     {
         d_quit = true;
         d_io_event.notify();

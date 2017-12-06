@@ -1,4 +1,4 @@
-#include "../stitch/mpsc_queue.h"
+#include "../stitch/queue_mpsc_waitfree.h"
 #include "../testing/testing.h"
 
 using namespace Stitch;
@@ -8,9 +8,9 @@ static bool test()
 {
     Testing::Test test;
 
-    test.assert("Lockfree.", MPSC_Queue<int>::is_lockfree());
+    test.assert("Lockfree.", Waitfree_MPSC_Queue<int>::is_lockfree());
 
-    MPSC_Queue<int> q (10);
+    Waitfree_MPSC_Queue<int> q (10);
 
     for (int rep = 0; rep < 3; ++rep)
     {
@@ -41,7 +41,7 @@ static bool test_bulk()
 {
     Testing::Test test;
 
-    MPSC_Queue<int> q(10);
+    Waitfree_MPSC_Queue<int> q(10);
 
     for (int rep = 0; rep < 6; ++rep)
     {
@@ -84,7 +84,7 @@ static bool stress_test()
 {
     Testing::Test test;
 
-    MPSC_Queue<int> q(50);
+    Waitfree_MPSC_Queue<int> q(50);
 
     atomic<bool> quit { false };
 
@@ -159,7 +159,7 @@ static bool stress_test()
     return test.success();
 }
 
-Testing::Test_Set mpsc_queue_tests()
+Testing::Test_Set waitfree_mpsc_queue_tests()
 {
     return {
         { "test", test },

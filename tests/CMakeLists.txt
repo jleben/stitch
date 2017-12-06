@@ -17,9 +17,10 @@ endfunction()
 
 set(test_sources
     test.cpp
-    test_spsc_queue.cpp
-    test_mpsc_queue.cpp
-    test_mpmc_queue.cpp
+    test_queue_spsc_waitfree.cpp
+    test_queue_mpsc_waitfree.cpp
+    test_queue_mpmc_waitfree.cpp
+    test_queue_mpmc_lockfree.cpp
     test_lockfree_set.cpp
     test_atom_spmc.cpp
     test_streams.cpp

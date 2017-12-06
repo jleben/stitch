@@ -1,23 +1,23 @@
 #include "connections.h"
-#include "mpsc_queue.h"
+#include "queue_mpsc_waitfree.h"
 #include "signal.h"
 
 namespace Stitch {
 
-template <typename T>
+template <typename T, typename Queue = Waitfree_MPSC_Queue<T>>
 struct Stream_Buffer
 {
     Stream_Buffer(int capacity): queue(capacity) {}
 
-    MPSC_Queue<T> queue;
+    Queue queue;
     Signal signal;
 };
 
-template <typename T>
-class Stream_Producer : public Client<Stream_Buffer<T>>
+template <typename T, typename Q = Waitfree_MPSC_Queue<T>>
+class Stream_Producer : public Client<Stream_Buffer<T,Q>>
 {
 public:
-    using Buffer = Stitch::Stream_Buffer<T>;
+    using Buffer = Stitch::Stream_Buffer<T,Q>;
 
     // Lock-free
 
@@ -35,11 +35,11 @@ public:
     }
 };
 
-template <typename T>
-class Stream_Consumer : public Server<Stream_Buffer<T>>
+template <typename T, typename Q = Waitfree_MPSC_Queue<T>>
+class Stream_Consumer : public Server<Stream_Buffer<T,Q>>
 {
 public:
-    using Buffer = Stitch::Stream_Buffer<T>;
+    using Buffer = Stitch::Stream_Buffer<T,Q>;
 
     Stream_Consumer(int capacity):
         Server<Buffer>(std::make_shared<Buffer>(capacity))
@@ -73,7 +73,7 @@ public:
     }
 };
 
-template <typename T>
-void connect(Stream_Producer<T> &, Stream_Producer<T> &) = delete;
+template <typename T, typename Q>
+void connect(Stream_Producer<T,Q> &, Stream_Producer<T,Q> &) = delete;
 
 }

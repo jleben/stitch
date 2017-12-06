@@ -1,4 +1,4 @@
-#include "../stitch/mpmc_queue.h"
+#include "../stitch/queue_mpmc_waitfree.h"
 #include "../testing/testing.h"
 
 using namespace Stitch;
@@ -8,9 +8,9 @@ static bool test()
 {
     Testing::Test test;
 
-    test.assert("Lockfree.", MPMC_Queue<int>::is_lockfree());
+    test.assert("Lockfree.", Waitfree_MPMC_Queue<int>::is_lockfree());
 
-    MPMC_Queue<int> q (10);
+    Waitfree_MPMC_Queue<int> q (10);
 
     for (int rep = 0; rep < 3; ++rep)
     {
@@ -33,7 +33,7 @@ static bool test()
     return test.success();
 }
 
-Testing::Test_Set mpmc_queue_tests()
+Testing::Test_Set waitfree_mpmc_queue_tests()
 {
     return {
         { "test", test }

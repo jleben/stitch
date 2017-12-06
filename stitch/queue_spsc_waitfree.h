@@ -15,13 +15,13 @@ All methods have wait-free progress guarantee.
 */
 
 template <typename T>
-class SPSC_Queue
+class Waitfree_SPSC_Queue
 {
 public:
 
     /*! \brief Constructs the queue with the given capacity. */
 
-    SPSC_Queue(int capacity): d_data(capacity + 1) {}
+    Waitfree_SPSC_Queue(int capacity): d_data(capacity + 1) {}
 
     static bool is_lockfree()
     {

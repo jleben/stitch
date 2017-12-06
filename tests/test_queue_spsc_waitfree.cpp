@@ -1,4 +1,4 @@
-#include "../stitch/spsc_queue.h"
+#include "../stitch/queue_spsc_waitfree.h"
 #include "../testing/testing.h"
 
 #include <thread>
@@ -10,7 +10,7 @@ using namespace std;
 static bool test_is_lockfree()
 {
     Testing::Test test;
-    test.assert("Lockfree.", SPSC_Queue<int>::is_lockfree());
+    test.assert("Lockfree.", Waitfree_SPSC_Queue<int>::is_lockfree());
     return test.success();
 }
 
@@ -18,7 +18,7 @@ static bool test_full_empty()
 {
     Testing::Test test;
 
-    SPSC_Queue<int> q(10);
+    Waitfree_SPSC_Queue<int> q(10);
 
     test.assert("Queue empty.", q.empty());
     test.assert("Queue not full.", !q.full());
@@ -60,7 +60,7 @@ static bool test_single_thread()
 {
     Testing::Test test;
 
-    SPSC_Queue<int> q(10);
+    Waitfree_SPSC_Queue<int> q(10);
 
     for (int rep = 0; rep < 2; ++rep)
     {
@@ -94,7 +94,7 @@ static bool test_bulk()
 {
     Testing::Test test;
 
-    SPSC_Queue<int> q(10);
+    Waitfree_SPSC_Queue<int> q(10);
 
     for (int rep = 0; rep < 6; ++rep)
     {
@@ -140,7 +140,7 @@ static bool test_stress()
     int rep_count = 100;
     int rep_size = 10;
 
-    SPSC_Queue<int> q(rep_size * 5);
+    Waitfree_SPSC_Queue<int> q(rep_size * 5);
 
     thread producer = thread([&]()
     {
@@ -180,7 +180,7 @@ static bool test_stress()
     return test.success();
 }
 
-Testing::Test_Set spsc_queue_tests()
+Testing::Test_Set waitfree_spsc_queue_tests()
 {
     return {
         { "lockfree", test_is_lockfree },
