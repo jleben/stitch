@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.1)
 
 project(stitch)
 
-option(STITCH_BUILD_DOCUMENTATION OFF)
-option(STITCH_BUILD_TESTS OFF)
-option(STITCH_STATIC_LIB OFF)
+option(STITCH_BUILD_DOCUMENTATION "Build Stitch documentation." OFF)
+option(STITCH_BUILD_TESTS "Build Stitch tests." OFF)
+option(STITCH_STATIC_LIB "Build Stitch as a static library." OFF)
 
 set(sources
     stitch/hazard_pointers.cpp
@@ -16,8 +16,10 @@ set(sources
 )
 
 if(STITCH_STATIC_LIB)
+    message(STATUS "Stitch building static")
     add_library(stitch STATIC ${sources})
 else()
+    message(STATUS "Stitch building shared")
     add_library(stitch SHARED ${sources})
 endif()
 
