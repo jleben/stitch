@@ -124,7 +124,7 @@ Stitch has a couple handy subclasses of Server and Client to model connections b
 - [Stream_Producer](@ref Stitch::Stream_Producer)
 - [Stream_Consumer](@ref Stitch::Stream_Consumer)
 
-Stream_Consumer is a Server and Stream_Producer is a Client and they share a MPSC_Queue.
+Stream_Consumer is a Server and Stream_Producer is a Client and they share a multi-producer-single-consumer queue.
 
 This implements the flow of data in the [Actor model][]: the queue represents the mailbox of the receiver of messages (consumer) and messages can arrive from multiple senders (producers).
 

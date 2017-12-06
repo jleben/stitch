@@ -9,9 +9,10 @@ Shared Data Structures
 
 The foundation of thread communication are data structures that can be collaboratively used by multiple threads:
 
-- [SPSC_Queue](@ref Stitch::SPSC_Queue): Wait-free single-producer-single-consumer bounded-size queue. More efficient than the `MPSC_Queue`.
-- [MPSC_Queue](@ref Stitch::MPSC_Queue): Wait-free multi-producer-single-consumer bounded-size queue. More efficient than the `MPMC_Queue`.
-- [MPMC_Queue](@ref Stitch::MPMC_Queue): Wait-free multi-producer-multi-consumer bounded-size queue.
+- [Waitfree_SPSC_Queue](@ref Stitch::Waitfree_SPSC_Queue): Wait-free single-producer-single-consumer bounded-size queue. Most efficient.
+- [Waitfree_MPSC_Queue](@ref Stitch::Waitfree_MPSC_Queue): Wait-free multi-producer-single-consumer bounded-size queue. More efficient than the wait-free MPMC queue.
+- [Waitfree_MPMC_Queue](@ref Stitch::Waitfree_MPMC_Queue): Wait-free multi-producer-multi-consumer bounded-size queue.
+- [Lockfree_MPMC_Queue](@ref Stitch::Lockfree_MPMC_Queue): Lock-free multi-producer-multi-consumer bounded-size queue. More efficient than the wait-free MPSC and MPMC queues.
 - [SPMC_Atom](@ref Stitch::SPMC_Atom): Lock-free single-writer-multi-reader value of any type (even a large data structure).
 - [Set](@ref Stitch::Set): An unordered dynamically-sized set of items with lock-free iteration, and blocking insertion and removal.
 
