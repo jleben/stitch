@@ -31,7 +31,7 @@ File::~File()
 
 int File::open_file(const string & path, File::Access access, bool blocking)
 {
-    int flags;
+    int flags = 0;
 
     switch (access)
     {
