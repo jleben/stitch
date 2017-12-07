@@ -6,6 +6,7 @@
 #include <functional>
 
 #include <sys/epoll.h>
+#include <poll.h>
 
 namespace Stitch {
 
@@ -49,10 +50,49 @@ If the event is momentary, it is deactivated.
 
 \sa
 - \ref Event, for details on event kinds and  states.
-- \ref Event_Reactor, for waiting on multiple events.
+- \ref Event_Reactor, for waiting on multiple events with callbacks.
 */
 
 void wait(const Event &);
+
+/*! \brief Waits for one of multiple events to become active.
+
+Momentary events are deactivated before returning.
+
+This function can be called with a brace-enclosed list:
+
+    wait({ event1, event2 });
+
+\sa
+- \ref Event, for details on event kinds and  states.
+- \ref Event_Reactor, for waiting on multiple events with callbacks.
+*/
+
+// FIXME: Test needed for the following function.
+
+template <size_t N>
+void wait(const Event (&events)[N])
+{
+    pollfd data[N];
+    for (int i = 0; i < N; ++i)
+    {
+        data[i].fd = events[i].fd;
+        data[i].events = events[i].poll_events;
+    }
+
+    int result;
+
+    do { result = poll(data, N, -1); }
+    while(result == -1 && errno == EINTR);
+
+    if (result == -1)
+        throw std::runtime_error("'poll' failed.");
+
+    for (int i = 0; i < N; ++i)
+    {
+        events[i].clear();
+    }
+}
 
 /*! \brief Waits for multiple events to become active and invokes subscribed callbacks.
 
