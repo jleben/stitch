@@ -22,7 +22,7 @@ static bool test_client()
 
     {
         int c = 0;
-        for(Data & d : a) { ++c; };
+        for(Data & d : a) { (void)d; ++c; };
         test.assert("Client a has no connections.", c == 0);
     }
 
@@ -87,12 +87,12 @@ static bool test_single_server()
 
     for(auto & d : client1)
     {
-        test.assert("Client 1 got data from server.", d.x = 3);
+        test.assert("Client 1 got data from server.", d.x == 3);
     };
 
     for(auto & d : client2)
     {
-        test.assert("Client 2 got data from server.", d.x = 3);
+        test.assert("Client 2 got data from server.", d.x == 3);
     };
 
     return test.success();
