@@ -61,7 +61,7 @@ public:
                 else
                     continue;
             }
-            if (d_read_pos.compare_exchange_weak(iter, iter + 1));
+            if (d_read_pos.compare_exchange_weak(iter, iter + 1))
                 break;
         }
 
