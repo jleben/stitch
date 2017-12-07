@@ -226,7 +226,6 @@ private:
 
     void advance_write(int count)
     {
-        int w = d_write_pos;
         d_write_pos = (d_write_pos + count) % d_data.size();
     }
 
