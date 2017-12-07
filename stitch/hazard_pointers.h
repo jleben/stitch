@@ -42,7 +42,7 @@ public:
         do
         {
             ++c;
-            j = j + 1 & m;
+            j = (j + 1) & m;
             if (d_pointers[j].acquire())
             {
                 d_pointer_alloc_hint = j;
