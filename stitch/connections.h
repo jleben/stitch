@@ -109,6 +109,7 @@ public:
         Iterator & operator++()
         {
             ++link;
+            return *this;
         }
 
         T & operator*()
