@@ -6,6 +6,8 @@ option(STITCH_BUILD_DOCUMENTATION "Build Stitch documentation." OFF)
 option(STITCH_BUILD_TESTS "Build Stitch tests." OFF)
 option(STITCH_STATIC_LIB "Build Stitch as a static library." OFF)
 
+add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -Werror=return-type)
+
 set(sources
     stitch/hazard_pointers.cpp
     stitch/linux/events.cpp
