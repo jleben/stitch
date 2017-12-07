@@ -24,6 +24,7 @@ set(test_sources
     test_lockfree_set.cpp
     test_atom_spmc.cpp
     test_streams.cpp
+    test_variable.cpp
     test_connections.cpp
     test_signal.cpp
     test_timer.cpp
@@ -37,7 +38,6 @@ make_test(tester "${test_sources}")
 
 set(experimental_test_sources
     test_experimental.cpp
-    test_variable.cpp
 )
 
 make_test(test-experimental "${experimental_test_sources}")

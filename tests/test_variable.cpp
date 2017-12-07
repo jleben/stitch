@@ -1,5 +1,5 @@
 #include "../testing/testing.h"
-#include "../experimental/variable.h"
+#include "../stitch/variable.h"
 
 #include <thread>
 #include <chrono>
