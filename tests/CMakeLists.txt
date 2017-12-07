@@ -33,6 +33,17 @@ set(test_sources
 
 make_test(tester "${test_sources}")
 
+
+
+set(experimental_test_sources
+    test_experimental.cpp
+    test_variable.cpp
+)
+
+make_test(test-experimental "${experimental_test_sources}")
+
+
+
 #make_test(test-waiter waiter_test.cpp)
 
 # FIXME: The common stream is now wait-free, so a special RT stream is not needed
