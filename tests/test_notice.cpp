@@ -12,13 +12,12 @@ static bool test_basic()
 {
     Test test;
 
-    Notice<int> writer1;
+    Notice<int> writer1(1);
     Notice<int> writer2;
 
-    NoticeReader<int> reader(999);
-
-    writer1.post(1);
     writer2.post(2);
+
+    NoticeReader<int> reader(999);
 
     test.assert("Reader gets 999.", reader.read() == 999);
 
@@ -42,11 +41,9 @@ static bool test_basic()
 
     test.assert("Reader gets 999.", reader.read() == 999);
 
-    // Test auto-disconnect writer.
+    // Test auto-disconnecting writer.
     {
-        Notice<int> writer3;
-
-        writer3.post(3);
+        Notice<int> writer3(3);
 
         reader.connect(writer3);
 
