@@ -12,38 +12,38 @@ using std::shared_ptr;
 
 namespace Detail {
 
-template <typename T> struct VarWriterData;
-template <typename T> struct VarReaderData;
+template <typename T> struct NoticeWriterData;
+template <typename T> struct NoticeReaderData;
 
 template <typename T>
-struct VarWriterData
+struct NoticeWriterData
 {
     SPMC_Atom<T> value;
-    Set<shared_ptr<VarReaderData<T>>> readers;
+    Set<shared_ptr<NoticeReaderData<T>>> readers;
 };
 
-template <typename T> struct VarReaderData
+template <typename T> struct NoticeReaderData
 {
     Signal signal;
-    weak_ptr<VarWriterData<T>> writer;
+    weak_ptr<NoticeWriterData<T>> writer;
 };
 
 }
 
-template <typename T> class Variable;
-template <typename T> class VariableReader;
+template <typename T> class Notice;
+template <typename T> class NoticeReader;
 
 template <typename T>
-class Variable
+class Notice
 {
-    friend class VariableReader<T>;
+    friend class NoticeReader<T>;
 
 public:
-    Variable():
-        d(std::make_shared<Detail::VarWriterData<T>>())
+    Notice():
+        d(std::make_shared<Detail::NoticeWriterData<T>>())
     {}
 
-    void set(const T & value)
+    void post(const T & value)
     {
         d->value.store(value);
 
@@ -54,24 +54,24 @@ public:
     }
 
 private:
-    shared_ptr<Detail::VarWriterData<T>> d;
+    shared_ptr<Detail::NoticeWriterData<T>> d;
 };
 
 template <typename T>
-class VariableReader
+class NoticeReader
 {
 public:
-    VariableReader(const T & default_value = T()):
+    NoticeReader(const T & default_value = T()):
         d_default_value(default_value),
-        d(std::make_shared<Detail::VarReaderData<T>>())
+        d(std::make_shared<Detail::NoticeReaderData<T>>())
     {}
 
-    ~VariableReader()
+    ~NoticeReader()
     {
         disconnect();
     }
 
-    void connect(Variable<T> & var)
+    void connect(Notice<T> & var)
     {
         disconnect();
 
@@ -88,7 +88,7 @@ public:
         d->writer.reset();
     }
 
-    T get()
+    T read()
     {
         auto writer = d->writer.lock();
         if (!writer)
@@ -104,7 +104,7 @@ public:
 
 private:
     T d_default_value;
-    shared_ptr<Detail::VarReaderData<T>> d;
+    shared_ptr<Detail::NoticeReaderData<T>> d;
 };
 
 }

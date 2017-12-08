@@ -9,7 +9,7 @@ Test_Set lockfree_mpmc_queue_tests();
 Test_Set lockfree_set_tests();
 Test_Set spmc_atom_tests();
 Test_Set stream_tests();
-Test_Set variable_tests();
+Test_Set notice_tests();
 Test_Set connection_tests();
 Test_Set signal_tests();
 Test_Set timer_tests();
@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
         { "spmc-atom", spmc_atom_tests() },
         { "connections", connection_tests() },
         { "stream", stream_tests() },
-        { "variable", variable_tests() },
+        { "notice", notice_tests() },
         { "signal", signal_tests() },
         { "timer", timer_tests() },
         { "file", file_tests() },

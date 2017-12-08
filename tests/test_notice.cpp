@@ -1,5 +1,5 @@
 #include "../testing/testing.h"
-#include "../stitch/variable.h"
+#include "../stitch/notice.h"
 
 #include <thread>
 #include <chrono>
@@ -12,60 +12,60 @@ static bool test_basic()
 {
     Test test;
 
-    Variable<int> var1;
-    Variable<int> var2;
+    Notice<int> writer1;
+    Notice<int> writer2;
 
-    VariableReader<int> reader(999);
+    NoticeReader<int> reader(999);
 
-    var1.set(1);
-    var2.set(2);
+    writer1.post(1);
+    writer2.post(2);
 
-    test.assert("Reader gets 999.", reader.get() == 999);
+    test.assert("Reader gets 999.", reader.read() == 999);
 
-    reader.connect(var1);
+    reader.connect(writer1);
 
-    test.assert("Reader gets 1.", reader.get() == 1);
+    test.assert("Reader gets 1.", reader.read() == 1);
 
-    reader.connect(var2);
+    reader.connect(writer2);
 
-    test.assert("Reader gets 2.", reader.get() == 2);
+    test.assert("Reader gets 2.", reader.read() == 2);
 
-    var1.set(11);
+    writer1.post(11);
 
-    test.assert("Reader gets 2.", reader.get() == 2);
+    test.assert("Reader gets 2.", reader.read() == 2);
 
-    var2.set(22);
+    writer2.post(22);
 
-    test.assert("Reader gets 22.", reader.get() == 22);
+    test.assert("Reader gets 22.", reader.read() == 22);
 
     reader.disconnect();
 
-    test.assert("Reader gets 999.", reader.get() == 999);
+    test.assert("Reader gets 999.", reader.read() == 999);
 
     // Test auto-disconnect writer.
     {
-        Variable<int> var3;
+        Notice<int> writer3;
 
-        var3.set(3);
+        writer3.post(3);
 
-        reader.connect(var3);
+        reader.connect(writer3);
 
-        test.assert("Reader gets 3.", reader.get() == 3);
+        test.assert("Reader gets 3.", reader.read() == 3);
     }
 
-    test.assert("Reader gets 999.", reader.get() == 999);
+    test.assert("Reader gets 999.", reader.read() == 999);
 
     // Test auto-disconnect reader.
 
     {
-        VariableReader<int> reader2;
+        NoticeReader<int> reader2;
 
-        reader2.connect(var1);
+        reader2.connect(writer1);
     }
 
     // Just make sure there's no crash.
 
-    var1.set(111);
+    writer1.post(111);
 
     return test.success();
 }
@@ -74,11 +74,11 @@ static bool test_event()
 {
     Test test;
 
-    Variable<int> writer;
-    VariableReader<int> reader(0);
+    Notice<int> writer;
+    NoticeReader<int> reader(0);
     Signal signal;
 
-    writer.set(1);
+    writer.post(1);
 
     reader.connect(writer);
 
@@ -86,7 +86,7 @@ static bool test_event()
     {
         wait(reader.changed());
 
-        test.assert("Reader gets 2.", reader.get() == 2);
+        test.assert("Reader gets 2.", reader.read() == 2);
 
         reader.disconnect();
 
@@ -104,11 +104,11 @@ static bool test_event()
 
     this_thread::sleep_for(chrono::milliseconds(100));
 
-    writer.set(2);
+    writer.post(2);
 
     this_thread::sleep_for(chrono::milliseconds(50));
 
-    writer.set(3);
+    writer.post(3);
 
     this_thread::sleep_for(chrono::milliseconds(50));
 
@@ -119,7 +119,7 @@ static bool test_event()
     return test.success();
 }
 
-Testing::Test_Set variable_tests()
+Testing::Test_Set notice_tests()
 {
     return {
         { "basic", test_basic },

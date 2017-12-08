@@ -24,7 +24,7 @@ set(test_sources
     test_lockfree_set.cpp
     test_atom_spmc.cpp
     test_streams.cpp
-    test_variable.cpp
+    test_notice.cpp
     test_connections.cpp
     test_signal.cpp
     test_timer.cpp
