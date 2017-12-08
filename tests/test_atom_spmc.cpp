@@ -10,16 +10,45 @@ using namespace std;
 
 struct Data
 {
-    int a = 0;
-    int b = 0;
-    int c = 0;
+    int a = 1;
+    int b = 2;
+    int c = 3;
 };
+
+static bool test_basic()
+{
+    Test test;
+
+    {
+        SPMC_Atom<Data> atom;
+        auto data = atom.load();
+        test.assert("Correct default-constructed value.",
+                    data.a == 1 && data.b == 2 && data.c == 3);
+    }
+
+    {
+        SPMC_Atom<Data> atom({ 3, 2, 1 });
+        auto data = atom.load();
+        test.assert("Correct initial value.",
+                    data.a == 3 && data.b == 2 && data.c == 1);
+    }
+
+    {
+        SPMC_Atom<Data> atom;
+        atom.store({ 4, 5, 6 });
+        auto data = atom.load();
+        test.assert("Correct stored and loaded value.",
+                    data.a == 4 && data.b == 5 && data.c == 6);
+    }
+
+    return test.success();
+}
 
 static bool test_stress()
 {
     Test test;
 
-    SPMC_Atom<Data> atom;
+    SPMC_Atom<Data> atom({ 0, 0, 0});
 
     atomic<bool> work { true };
 
@@ -66,6 +95,7 @@ static bool test_stress()
 Testing::Test_Set spmc_atom_tests()
 {
     return {
+        { "basic", test_basic },
         { "stress", test_stress }
     };
 }

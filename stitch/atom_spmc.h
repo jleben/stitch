@@ -36,6 +36,17 @@ public:
             throw std::runtime_error("Not lockfree.");
     }
 
+    /*!
+     * \brief Constructs the container with a given value.
+     */
+    SPMC_Atom(const T & value)
+    {
+        if (!writing->version_a.is_lock_free())
+            throw std::runtime_error("Not lockfree.");
+
+        reading.load()->value = value;
+    }
+
     // Wait-free
 
     /*!
