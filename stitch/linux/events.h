@@ -117,6 +117,8 @@ public:
     ~Event_Reactor();
 
     /*! \brief Subscribes `callback` to be invoked when `event` is activated.
+     *
+     * It is safe to throw an exception from the callback. See \ref run for details.
     */
     void subscribe(const Event & event, Callback callback);
 
@@ -136,6 +138,11 @@ public:
 
       "Handling" an active event means invoking the subscribed callback
       and deactivating momentary events.
+
+      It is safe to throw an exception from a callback. Exceptions are
+      simply propagated by the `run` method.
+      Apart from that, throwing an exception has the same effect
+      as calling \ref quit from a callback.
 
       \sa \ref Event, for details on event kinds and  states.
     */
