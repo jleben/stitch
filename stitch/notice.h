@@ -45,6 +45,8 @@ template <typename T> class NoticeReader;
 
   The last posted value is returned by a call to \ref NoticeReader::read on a connected reader.
   This is true even if it was posted before the reader was connected.
+
+  Unless otherwise noted, the methods of this class should only be called from a single thread.
  */
 template <typename T>
 class Notice
@@ -83,6 +85,15 @@ public:
         }
     }
 
+    /*! \brief Returns the latest posted value.
+     *
+     * This can be called from multiple threads.
+     */
+    T read()
+    {
+        return d->value.load();
+    }
+
 private:
     shared_ptr<Detail::NoticeWriterData<T>> d;
 };
@@ -95,6 +106,8 @@ private:
 
   Whenever a new value is posted, the event returned by \ref changed is
   activated.
+
+  Unless otherwise noted, the methods of this class should only be called from a single thread.
 */
 
 template <typename T>
