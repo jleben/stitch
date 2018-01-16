@@ -1,3 +1,4 @@
+#pragma once
 
 #include "../stitch/atom_spmc.h"
 #include "../stitch/connections.h"
