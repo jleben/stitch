@@ -51,8 +51,8 @@ public:
         }
         while (j != i);
 
-        if (c > 1)
-            printf("Retries: %d\n", c);
+        //if (c > 1)
+            //printf("Retries: %d\n", c);
 
         throw std::runtime_error("Ran out of pointers.");
     }
