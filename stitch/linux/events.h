@@ -7,6 +7,7 @@
 
 #include <sys/epoll.h>
 #include <poll.h>
+#include <errno.h>
 
 namespace Stitch {
 
