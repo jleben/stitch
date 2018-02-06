@@ -25,7 +25,7 @@ public:
 
     static bool is_lockfree()
     {
-        return ATOMIC_INT_LOCK_FREE;
+        return ATOMIC_INT_LOCK_FREE == 2;
     }
 
     /*!

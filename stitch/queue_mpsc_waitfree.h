@@ -17,7 +17,7 @@ class Waitfree_MPSC_Queue
 public:
     static bool is_lockfree()
     {
-        return ATOMIC_INT_LOCK_FREE && ATOMIC_BOOL_LOCK_FREE;
+        return (ATOMIC_INT_LOCK_FREE == 2) && (ATOMIC_BOOL_LOCK_FREE == 2);
     }
 
     Waitfree_MPSC_Queue(int size):
