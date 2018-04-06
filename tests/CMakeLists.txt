@@ -11,7 +11,7 @@ set_property(TARGET testing PROPERTY CXX_STANDARD 14)
 
 function(make_test name src)
     add_executable(${name} ${src})
-    target_link_libraries(${name} testing stitch pthread)
+    target_link_libraries(${name} testing stitch pthread atomic)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD 14)
 endfunction()
 
@@ -25,6 +25,7 @@ set(test_sources
     test_atom_spmc.cpp
     test_streams.cpp
     test_notice.cpp
+    test_state.cpp
     test_connections.cpp
     test_signal.cpp
     test_timer.cpp
