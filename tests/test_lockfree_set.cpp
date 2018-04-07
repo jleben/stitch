@@ -247,6 +247,37 @@ static bool test_removal_during_iteration()
     return test.success();
 }
 
+static bool test_destructor()
+{
+    Test test;
+
+    static atomic<int> elem_count { 0 };
+
+    struct Element
+    {
+        Element() { elem_count.fetch_add(1); }
+        Element(const Element &): Element() {}
+        ~Element() { elem_count.fetch_sub(1); }
+    };
+
+    {
+        Set<shared_ptr<Element>> set;
+
+        for (int i = 0; i < 10; ++i)
+        {
+            set.insert(make_shared<Element>());
+        }
+
+        test.assert("There is 10 elements.", elem_count == 10);
+    }
+
+    Detail::Hazard_Pointers::clear();
+
+    test.assert("When set is destroyed, there is 0 elements.", elem_count == 0);
+
+    return test.success();
+}
+
 static bool stress()
 {
     Test test;
@@ -336,6 +367,7 @@ Test_Set lockfree_set_tests()
         { "contains", contains },
         { "iteration", iteration },
         { "removal-during-iteration", test_removal_during_iteration },
+        { "destructor", test_destructor },
         { "reclamation", reclamation },
         { "stress", stress },
     };

@@ -30,6 +30,14 @@ private:
 
 public:
 
+    // Blocking
+    // O(N)
+
+    ~Set()
+    {
+        clear();
+    }
+
     // Wait-free
     // O(1)
 
