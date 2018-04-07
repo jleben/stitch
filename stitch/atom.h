@@ -9,14 +9,14 @@ namespace Stitch {
 
 using std::atomic;
 
-template <typename T> class StateWriter;
-template <typename T> class StateReader;
+template <typename T> class AtomWriter;
+template <typename T> class AtomReader;
 
 template <typename T>
-class State
+class Atom
 {
-    friend class StateWriter<T>;
-    friend class StateReader<T>;
+    friend class AtomWriter<T>;
+    friend class AtomReader<T>;
 
 public:
     static bool is_lockfree()
@@ -25,15 +25,15 @@ public:
         return head.is_lock_free();
     }
 
-    State():
+    Atom():
         d_current(new Node(1))
     {}
 
-    State(T value):
+    Atom(T value):
         d_current(new Node(value, 1))
     {}
 
-    ~State()
+    ~Atom()
     {
         delete d_current.load();
     }
@@ -153,17 +153,17 @@ private:
 };
 
 template <typename T>
-class StateWriter
+class AtomWriter
 {
-    using Node = typename State<T>::Node;
+    using Node = typename Atom<T>::Node;
 
 public:
-    StateWriter(State<T> & state, T value = T()):
-        d_state(state),
+    AtomWriter(Atom<T> & atom, T value = T()):
+        d_atom(atom),
         d_node(new Node(value, 0))
     {}
 
-    ~StateWriter()
+    ~AtomWriter()
     {
         // Since we allocated a node in constructor,
         // reclaim one now.
@@ -174,32 +174,32 @@ public:
 
     void store()
     {
-        d_node = d_state.make_current(d_node);
+        d_node = d_atom.make_current(d_node);
     }
 
 private:
-    State<T> & d_state;
+    Atom<T> & d_atom;
     Node * d_node;
 };
 
 template <typename T>
-class StateReader
+class AtomReader
 {
-    using Node = typename State<T>::Node;
+    using Node = typename Atom<T>::Node;
 
 public:
-    StateReader(State<T> & state, T value = T()):
-        d_state(state),
+    AtomReader(Atom<T> & atom, T value = T()):
+        d_atom(atom),
         d_node(new Node(value, 1))
     {}
 
-    ~StateReader()
+    ~AtomReader()
     {
-        d_state.unref(d_node);
+        d_atom.unref(d_node);
 
         // Since we allocated a node in constructor,
         // reclaim one now.
-        Node * node = d_state.acquire();
+        Node * node = d_atom.acquire();
         Detail::Hazard_Pointers::reclaim(node);
     }
 
@@ -207,11 +207,11 @@ public:
 
     void load()
     {
-        d_node = d_state.get_current(d_node);
+        d_node = d_atom.get_current(d_node);
     }
 
 private:
-    State<T> & d_state;
+    Atom<T> & d_atom;
     Node * d_node;
 };
 
