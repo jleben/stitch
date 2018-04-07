@@ -3,6 +3,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <type_traits>
 
 namespace Stitch {
 
@@ -12,7 +13,7 @@ using std::array;
 /*!
 \brief Lock-free atomically updated container of a single value of type T.
 
-Type T must be default-constructible.
+Type T must be trivially copyable.
 
 This class uses versioning to detect thread contention.
 It will operate correctly
@@ -29,11 +30,15 @@ public:
 
     /*!
      * \brief Constructs the container with a default-constructed value.
+     *
+     * Throws a std::runtime_error if type T is not a trivially copyable type.
      */
     SPMC_Atom()
     {
         if (!writing->version_a.is_lock_free())
             throw std::runtime_error("Not lockfree.");
+        if (!std::is_trivially_copyable<T>::value)
+            throw std::runtime_error("Value type is not trivial.");
     }
 
     /*!

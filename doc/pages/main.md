@@ -13,8 +13,9 @@ The foundation of thread communication are data structures that can be collabora
 - [Waitfree_MPSC_Queue](@ref Stitch::Waitfree_MPSC_Queue): Wait-free multi-producer-single-consumer bounded-size queue. More efficient than the wait-free MPMC queue.
 - [Waitfree_MPMC_Queue](@ref Stitch::Waitfree_MPMC_Queue): Wait-free multi-producer-multi-consumer bounded-size queue.
 - [Lockfree_MPMC_Queue](@ref Stitch::Lockfree_MPMC_Queue): Lock-free multi-producer-multi-consumer bounded-size queue. More efficient than the wait-free MPSC and MPMC queues.
-- [SPMC_Atom](@ref Stitch::SPMC_Atom): Lock-free single-writer-multi-reader value of any type (even a large data structure).
-- [Set](@ref Stitch::Set): An unordered dynamically-sized set of items with lock-free iteration, and blocking insertion and removal.
+- [SPMC_Atom](@ref Stitch::SPMC_Atom): Lock-free single-writer-multi-reader atomic value of any trivially copyable type (regardless of size). More efficient than the generic Atom.
+- [Atom](@ref Stitch::Atom): Lock-free multi-writer-multi-reader atomic value of any type (regardless of size).
+- [Set](@ref Stitch::Set): An unordered dynamically-sized set of items with lock-free iteration.
 
 Connections
 -----------

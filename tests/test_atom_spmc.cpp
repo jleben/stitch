@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <chrono>
+#include <memory>
 
 using namespace Stitch;
 using namespace Testing;
@@ -14,6 +15,37 @@ struct Data
     int b = 2;
     int c = 3;
 };
+
+static bool test_invalid_value_type()
+{
+    Test test;
+
+    bool exception_thrown = false;
+
+    struct Value
+    {
+        int x = 0;
+
+        Value() {}
+        Value(const Value & other)
+        {
+            x = other.x * 2;
+        }
+    };
+
+    try
+    {
+        SPMC_Atom<Value> atom;
+    }
+    catch (std::runtime_error &)
+    {
+        exception_thrown = true;
+    }
+
+    test.assert("Can not construct with a non-trivially copyable value type.", exception_thrown);
+
+    return test.success();
+}
 
 static bool test_basic()
 {
@@ -95,6 +127,7 @@ static bool test_stress()
 Testing::Test_Set spmc_atom_tests()
 {
     return {
+        { "invalid-value-type", test_invalid_value_type },
         { "basic", test_basic },
         { "stress", test_stress }
     };
