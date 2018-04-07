@@ -76,7 +76,6 @@ private:
 
         unref(node);
 
-
         for(;; c = d_current.load())
         {
             // Protect the node being deleted while we inspect it.

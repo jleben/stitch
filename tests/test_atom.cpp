@@ -224,7 +224,6 @@ static bool test_stress()
     Test test;
 
     Atom<Value> atom;
-    AtomReader<Value> reader(atom);
 
     int transmitted_count = 0;
     int write_cycle_count = 0;
@@ -254,6 +253,8 @@ static bool test_stress()
 
     auto read_func = [&]()
     {
+        AtomReader<Value> reader(atom);
+
         Value v0;
 
         try
@@ -283,8 +284,10 @@ static bool test_stress()
     {
         while (clock::now() - start < duration)
         {
-            thread writer(write_func);
-            writer.join();
+            thread writer1(write_func);
+            thread writer2(write_func);
+            writer1.join();
+            writer2.join();
             ++write_cycle_count;
         }
     });
@@ -293,8 +296,10 @@ static bool test_stress()
     {
         while (clock::now() - start < duration)
         {
-            thread reader(read_func);
-            reader.join();
+            thread reader1(read_func);
+            thread reader2(read_func);
+            reader1.join();
+            reader2.join();
             ++read_cycle_count;
         }
     });
