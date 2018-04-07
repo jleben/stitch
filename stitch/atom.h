@@ -35,7 +35,8 @@ public:
 
     ~Atom()
     {
-        delete d_current.load();
+        Node * c = d_current.load();
+        delete c;
     }
 
 private:
@@ -110,9 +111,9 @@ private:
     // Reduce reference count and release node if count is 0
     void unref(Node * n)
     {
-        n->ref.fetch_sub(1);
+        int last_ref = n->ref.fetch_sub(1);
 
-        if (n->ref.load() == 0)
+        if (last_ref == 1)
         {
             release(n);
         }
@@ -134,8 +135,6 @@ private:
     // Get node from free list
     Node * acquire()
     {
-        // Only one thread ever acquires, so there's no ABA
-        // FIXME: An observer needs to acquire when disconnected.
         for (;;)
         {
             auto head = d_free.load();
@@ -147,7 +146,6 @@ private:
         }
     }
 
-    // FIXME: Store initial node into d_current?
     atomic<Node*> d_current { nullptr };
     atomic<Head> d_free;
 };
