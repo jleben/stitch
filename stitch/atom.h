@@ -45,7 +45,7 @@ private:
         Node(const T & value, int refcount): value(value), ref(refcount) {}
 
         Node * next = nullptr;
-        T value;
+        T value {};
         atomic<int> ref;
     };
 

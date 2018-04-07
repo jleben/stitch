@@ -14,6 +14,23 @@ static bool test_lockfree()
     return test.success();
 }
 
+static bool test_default_value()
+{
+    Test test;
+
+    Atom<int> atom;
+    AtomWriter<int> writer(atom);
+    AtomReader<int> reader(atom);
+
+    test.assert("Default writer value.", writer.value() == 0);
+    test.assert("Default reader value.", reader.value() == 0);
+
+    int v = reader.load();
+    test.assert("Default loaded value.", v == 0);
+
+    return test.success();
+}
+
 static bool test_single_writer_single_reader()
 {
     Test test;
@@ -168,6 +185,7 @@ Test_Set atom_tests()
 {
     return {
         { "lockfree", test_lockfree },
+        { "default-value", test_default_value },
         { "single-writer-reader", test_single_writer_single_reader },
         { "multi-writer-reader", test_multi_writer_multi_reader },
         { "non-trivial-value", test_nontrivial_value },
