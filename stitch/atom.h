@@ -205,9 +205,10 @@ public:
 
     const T & value() { return d_node->value; }
 
-    void load()
+    const T & load()
     {
         d_node = d_atom.get_current(d_node);
+        return d_node->value;
     }
 
 private:
