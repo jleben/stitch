@@ -30,6 +30,11 @@ private:
 
 public:
 
+    // Wait-free
+    // O(1)
+
+    Set() {}
+
     // Blocking
     // O(N)
 
@@ -37,6 +42,11 @@ public:
     {
         clear();
     }
+
+    // Delete copy constructor and assignment operator
+
+    Set(const Set &) = delete;
+    Set & operator=(const Set &) = delete;
 
     // Wait-free
     // O(1)
