@@ -182,11 +182,42 @@ bool test_reclamation()
     return test.success();
 }
 
+bool test_stress_reclamation()
+{
+    for (int i = 0; i < 1000000; ++i)
+    {
+        int * p = new int;
+        Hazard_Pointers::reclaim(p);
+    }
+
+    return true;
+}
+
+bool test_reclaim_reentrant()
+{
+    struct Value
+    {
+        int * p;
+        Value() { p = new int; }
+        ~Value() { Detail::Hazard_Pointers::reclaim(p); }
+    };
+
+    for (int i = 0; i < 10000; ++i)
+    {
+        Value * v = new Value;
+        Detail::Hazard_Pointers::reclaim(v);
+    }
+
+    return true;
+}
+
 Test_Set hazard_pointers_tests()
 {
     return {
         { "stress-allocation", test_stress_allocation },
         { "reclamation", test_reclamation },
         { "over-allocation", test_over_allocation },
+        { "stress-reclamation", test_stress_reclamation },
+        { "reclaim-reentrant", test_reclaim_reentrant },
     };
 }

@@ -60,18 +60,55 @@ public:
     template <typename T>
     static void reclaim(T * p)
     {
-        d_thread_record.owned.emplace_back(p);
-        cleanup();
+        d_thread_record.reclaim(p);
     }
 
 private:
 
-    static void cleanup()
+    template <typename T>
+    struct Deleter
     {
-        auto & owned = d_thread_record.owned;
+        static void del(void *p) { delete (T*)p; }
+    };
 
-        if (owned.size() >= H)
+    struct Owned_Ptr
+    {
+        template <typename T>
+        Owned_Ptr(T * ptr): ptr(ptr), deleter(&Deleter<T>::del) {}
+
+        Owned_Ptr(const Owned_Ptr &) = delete;
+        Owned_Ptr & operator=(const Owned_Ptr &) = delete;
+
+        void * ptr;
+        void (*deleter)(void *);
+    };
+
+    struct Thread_Record
+    {
+        ~Thread_Record()
         {
+            cleanup();
+        }
+
+        // NOTE: This must be reentrant!
+        // Deleting an object could reclaim other objects.
+        template <typename T>
+        void reclaim(T * p)
+        {
+            owned.emplace_back(p);
+            if (owned.size() >= H)
+            {
+                cleanup();
+            }
+        }
+
+        void cleanup()
+        {
+            if (cleanup_in_progress)
+                return;
+
+            cleanup_in_progress = true;
+
             unordered_set<void*> hs;
 
             for (const auto & pointer : Hazard_Pointers::d_pointers)
@@ -87,34 +124,20 @@ private:
                 if (hs.find(p) == hs.end())
                 {
                     //printf("Deleting %p\n", p);
+                    it->deleter(p);
                     it = owned.erase(it);
                 }
                 else
+                {
                     ++it;
+                }
             }
+
+            cleanup_in_progress = false;
         }
-    }
 
-    template <typename T>
-    struct Deleter
-    {
-        static void del(void *p) { delete (T*)p; }
-    };
-
-    struct Owned_Ptr
-    {
-        template <typename T>
-        Owned_Ptr(T * ptr): ptr(ptr), deleter(&Deleter<T>::del) {}
-        Owned_Ptr(const Owned_Ptr &) = delete;
-        Owned_Ptr & operator=(const Owned_Ptr &) = delete;
-        ~Owned_Ptr() { deleter(ptr); }
-        void * ptr;
-        void (*deleter)(void *);
-    };
-
-    struct Thread_Record
-    {
         list<Owned_Ptr> owned;
+        bool cleanup_in_progress = false;
     };
 
     thread_local static Thread_Record d_thread_record;
