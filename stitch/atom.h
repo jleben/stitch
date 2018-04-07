@@ -57,7 +57,7 @@ private:
 
     struct Head
     {
-        uintptr_t version;
+        uintptr_t version = 0;
         Node * first = nullptr;
     };
 
