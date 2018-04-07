@@ -29,7 +29,7 @@ private:
 class Hazard_Pointers
 {
 public:
-    static constexpr int K = 2;
+    // NOTE: H must be power of two
     static constexpr int H = 256;
 
     template<typename T> static
@@ -46,7 +46,7 @@ public:
             if (d_pointers[j].acquire())
             {
                 d_pointer_alloc_hint = j;
-                return reinterpret_cast<Hazard_Pointer<T>&>(d_pointers[i]);
+                return reinterpret_cast<Hazard_Pointer<T>&>(d_pointers[j]);
             }
         }
         while (j != i);

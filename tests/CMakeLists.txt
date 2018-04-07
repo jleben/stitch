@@ -17,6 +17,7 @@ endfunction()
 
 set(test_sources
     test.cpp
+    test_hazard_pointers.cpp
     test_queue_spsc_waitfree.cpp
     test_queue_mpsc_waitfree.cpp
     test_queue_mpmc_waitfree.cpp

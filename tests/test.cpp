@@ -2,6 +2,7 @@
 
 using namespace Testing;
 
+Test_Set hazard_pointers_tests();
 Test_Set waitfree_spsc_queue_tests();
 Test_Set waitfree_mpsc_queue_tests();
 Test_Set waitfree_mpmc_queue_tests();
@@ -21,6 +22,7 @@ Test_Set event_reactor_tests();
 int main(int argc, char * argv[])
 {
     Testing::Test_Set tests = {
+        { "hazard-pointers", hazard_pointers_tests() },
         { "waitfree-spsc-queue", waitfree_spsc_queue_tests() },
         { "waitfree-mpsc-queue", waitfree_mpsc_queue_tests() },
         { "waitfree-mpmc-queue", waitfree_mpmc_queue_tests() },
