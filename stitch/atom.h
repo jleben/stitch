@@ -39,11 +39,16 @@ public:
         delete c;
     }
 
+    Atom(const Atom &) = delete;
+    Atom & operator=(const Atom &) = delete;
+
 private:
     struct Node
     {
         Node(int refcount): ref(refcount) {}
         Node(const T & value, int refcount): value(value), ref(refcount) {}
+        Node(const Node &) = delete;
+        Node & operator=(const Node &) = delete;
 
         Node * next = nullptr;
         T value {};
@@ -174,6 +179,9 @@ public:
         Detail::Hazard_Pointers::reclaim(d_node);
     }
 
+    AtomWriter(const AtomWriter &) = delete;
+    AtomWriter & operator=(const AtomWriter &) = delete;
+
     T & value() { return d_node->value; }
 
     void store()
@@ -202,6 +210,9 @@ public:
         d_atom(atom),
         d_node(new Node(value, 1))
     {}
+
+    AtomReader(const AtomReader &) = delete;
+    AtomReader & operator=(const AtomReader &) = delete;
 
     ~AtomReader()
     {
