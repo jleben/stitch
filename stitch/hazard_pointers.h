@@ -63,6 +63,11 @@ public:
         d_thread_record.reclaim(p);
     }
 
+    static void clear()
+    {
+        d_thread_record.cleanup();
+    }
+
 private:
 
     template <typename T>
