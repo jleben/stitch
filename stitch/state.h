@@ -103,6 +103,13 @@ public:
         }
     }
 
+    /*! \brief Copies given value to \ref value and makes it available to observers.
+     *
+     * This is equivalent to:
+     *
+     *     observer.value() = value;
+     *     observer.store();
+     */
     void store(const T & value)
     {
         this->value() = value;
@@ -120,7 +127,7 @@ private:
   The observer is connected to a State using \ref connect.
 
   The method \ref load loads the latest value stored in the State
-  and \ref value return a reference to the last loaded value.
+  and \ref value returns a reference to the last loaded value.
 
   Whenever a new value is stored, the event returned by \ref changed is
   activated.
@@ -132,10 +139,10 @@ template <typename T>
 class State_Observer
 {
 public:
-    /*! Constructs the State_Observer with a default value.
+    /*! Constructs the observer with a default value.
 
-      The default value is returned by a call to \ref read
-      when the State_Observer is not connected.
+      The default value is returned by \ref load and \ref value
+      when the observer is not connected.
     */
     State_Observer(const T & default_value = T()):
         d_default_value(default_value),
@@ -172,11 +179,11 @@ public:
 
     /*! \brief Loads the latest value stored by a connected \ref State.
 
-      So long as the State_Observer is connected to a \ref State,
+      So long as the observer is connected to a \ref State,
       this method loads the last value stored by the State and
       returns a reference to it.
 
-      When the State_Observer is not connected this method returns
+      When the observer is not connected this method returns
       a reference to the default value passed to the constructor.
      */
     const T & load()
