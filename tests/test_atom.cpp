@@ -2,6 +2,7 @@
 #include "../testing/testing.h"
 
 #include <thread>
+#include <chrono>
 
 using namespace Stitch;
 using namespace Testing;
@@ -155,7 +156,7 @@ static bool test_multi_writer_multi_reader()
     return test.success();
 }
 
-static bool test_nontrivial_value()
+static bool test_node_reclamation()
 {
     Test test;
 
@@ -163,13 +164,8 @@ static bool test_nontrivial_value()
 
     struct Value
     {
-        double x = 1.1;
-        double y = 2.2;
-
-        Value(): Value(1.1, 2.2) {  }
-        Value(double x, double y): x(x), y(y) { value_count.fetch_add(1); }
-        Value(const Value & other): Value(other.x, other.y) {}
-
+        Value() { value_count.fetch_add(1); }
+        Value(const Value &): Value() {}
         ~Value() { value_count.fetch_sub(1); }
     };
 
@@ -205,6 +201,117 @@ static bool test_nontrivial_value()
     return test.success();
 }
 
+static bool test_stress()
+{
+    struct Value
+    {
+        double x = 0;
+        double y = 0;
+        double z = 0;
+
+        Value() {}
+
+        Value(double x, double y, double z): x(x), y(y), z(z)
+        {
+            bool ok = (x == y && x == z);
+            if (!ok)
+                throw std::runtime_error("Value corrupted");
+        }
+
+        Value(const Value & other): Value(other.x, other.y, other.z) {}
+    };
+
+    Test test;
+
+    Atom<Value> atom;
+    AtomReader<Value> reader(atom);
+
+    int transmitted_count = 0;
+    int write_cycle_count = 0;
+    int read_cycle_count = 0;
+
+    using clock = chrono::steady_clock;
+
+    auto start = clock::now();
+    chrono::seconds duration(1);
+
+    auto write_func = [&]()
+    {
+        AtomWriter<Value> writer(atom);
+
+        try
+        {
+            for (int i = 0; i < 100; ++i)
+            {
+                writer.store(Value(i, i, i));
+            }
+        }
+        catch (std::runtime_error & e)
+        {
+            test.assert(string("Writer exception: ") + e.what(), false);
+        }
+    };
+
+    auto read_func = [&]()
+    {
+        Value v0;
+
+        try
+        {
+            for (int i = 0; i < 111; ++i)
+            {
+                const Value & v = reader.load();
+
+                bool is_new = v.x != v0.x || v.y != v0.y || v.z != v0.z;
+                if (is_new)
+                    ++transmitted_count;
+
+                bool ok = (v.x == v.y && v.x == v.z);
+                if (!ok)
+                    throw std::runtime_error("Value corrupted");
+
+                v0 = v;
+            }
+        }
+        catch (std::runtime_error & e)
+        {
+            test.assert(string("Reader exception: ") + e.what(), false);
+        }
+    };
+
+    thread generate_writers([&]()
+    {
+        while (clock::now() - start < duration)
+        {
+            thread writer(write_func);
+            writer.join();
+            ++write_cycle_count;
+        }
+    });
+
+    thread generate_readers([&]()
+    {
+        while (clock::now() - start < duration)
+        {
+            thread reader(read_func);
+            reader.join();
+            ++read_cycle_count;
+        }
+    });
+
+    generate_writers.join();
+    generate_readers.join();
+
+    test.assert("Transmitted more than 10000 values: " + to_string(transmitted_count),
+                transmitted_count > 20000);
+    test.assert("Done more than 200 write cycles: " + to_string(write_cycle_count),
+                read_cycle_count > 200);
+    test.assert("Done more than 200 read cycles: " + to_string(read_cycle_count),
+                read_cycle_count > 200);
+
+    return test.success();
+}
+
 Test_Set atom_tests()
 {
     return {
@@ -213,6 +320,7 @@ Test_Set atom_tests()
         { "basic-store-load", test_basic_store_load },
         { "single-writer-reader", test_single_writer_single_reader },
         { "multi-writer-reader", test_multi_writer_multi_reader },
-        { "non-trivial-value", test_nontrivial_value },
+        { "node-reclamation", test_node_reclamation },
+        { "stress", test_stress },
     };
 }
