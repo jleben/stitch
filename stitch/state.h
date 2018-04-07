@@ -32,6 +32,7 @@ template <typename T> struct State_Observer_Data
         reader(state->atom, value)
     {}
 
+    // NOTE: Mind the order: state must be destoyed after reader.
     shared_ptr<Detail::State_Data<T>> state;
     AtomReader<T> reader;
     Signal signal;
