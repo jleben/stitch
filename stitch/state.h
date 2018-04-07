@@ -102,6 +102,12 @@ public:
         }
     }
 
+    void store(const T & value)
+    {
+        this->value() = value;
+        store();
+    }
+
 private:
     shared_ptr<Detail::State_Data<T>> d_shared;
     AtomWriter<T> d_writer;

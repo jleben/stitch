@@ -177,6 +177,12 @@ public:
         d_node = d_atom.make_current(d_node);
     }
 
+    void store(const T & value)
+    {
+        this->value() = value;
+        store();
+    }
+
 private:
     Atom<T> & d_atom;
     Node * d_node;

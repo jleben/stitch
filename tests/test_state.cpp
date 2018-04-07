@@ -116,8 +116,13 @@ bool test_store_load()
         state.value() = i;
         state.store();
 
-        test.assert("Loaded value.", observer.load() == i);
-        test.assert("Read value.", observer.value() == i);
+        test.assert("write(value) + store() + load()", observer.load() == i);
+        test.assert("read()", observer.value() == i);
+
+        state.store(i+100);
+
+        test.assert("store(value) + load()", observer.load() == i+100);
+        test.assert("read()", observer.value() == i+100);
     }
 
     return test.success();

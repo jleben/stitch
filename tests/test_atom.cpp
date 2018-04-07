@@ -31,6 +31,30 @@ static bool test_default_value()
     return test.success();
 }
 
+static bool test_basic_store_load()
+{
+    Test test;
+
+    Atom<int> atom;
+    AtomWriter<int> writer(atom);
+    AtomReader<int> reader(atom);
+
+    {
+        writer.value() = 2;
+        writer.store();
+        test.assert("write(2) + store() + load() returns 2.", reader.load() == 2);
+        test.assert("read() also returns 2.", reader.value() == 2);
+    }
+
+    {
+        writer.store(3);
+        test.assert("store(3) + load() returns 3.", reader.load() == 3);
+        test.assert("read() also returns 3.", reader.value() == 3);
+    }
+
+    return test.success();
+}
+
 static bool test_single_writer_single_reader()
 {
     Test test;
@@ -186,6 +210,7 @@ Test_Set atom_tests()
     return {
         { "lockfree", test_lockfree },
         { "default-value", test_default_value },
+        { "basic-store-load", test_basic_store_load },
         { "single-writer-reader", test_single_writer_single_reader },
         { "multi-writer-reader", test_multi_writer_multi_reader },
         { "non-trivial-value", test_nontrivial_value },
