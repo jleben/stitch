@@ -206,6 +206,137 @@ bool test_notification()
     return test.success();
 }
 
+bool test_stress()
+{
+    struct Value
+    {
+        double x = 0;
+        double y = 0;
+        double z = 0;
+    };
+
+    auto observe = [&](State_Observer<Value> * observer, int count)
+    {
+        Value v0;
+
+        int new_count = 0;
+
+        while(new_count < count)
+        {
+            const Value & v = observer->load();
+            bool is_new = tie(v.x, v.y, v.z) != tie(v0.x, v0.y, v0.z);
+            if (is_new)
+                ++new_count;
+
+            bool is_consistent =  v.x == v.y && v.x == v.z;
+            if (!is_consistent)
+                throw std::runtime_error("Value inconsistent.");
+        }
+    };
+
+    auto write = [&](State<Value> * state, int count)
+    {
+        for (int i = 0; i < count; ++i)
+        {
+            Value & v = state->value();
+            v.x = i;
+            v.y = i;
+            v.z = i;
+            state->store();
+        }
+    };
+
+    {
+        State<Value> state;
+
+        int to_transmit = 100000;
+        atomic<int> transmitted { 0 };
+
+        thread write_thread([&]()
+        {
+            while (transmitted < to_transmit)
+            {
+                write(&state, 500);
+            }
+        });
+
+        while(transmitted < to_transmit)
+        {
+            State_Observer<Value> observer1;
+            observer1.connect(state);
+            thread t1(observe, &observer1, 100);
+
+            State_Observer<Value> observer2;
+            observer2.connect(state);
+            thread t2(observe, &observer2, 100);
+
+            t1.join();
+            t2.join();
+
+            transmitted.fetch_add(100);
+        }
+
+        write_thread.join();
+    }
+
+    return true;
+}
+
+bool stress_connect_disconnect()
+{
+    {
+        State<int> state;
+
+        auto connect_observers = [&]()
+        {
+            for (int i = 0; i < 100; ++i)
+            {
+                State_Observer<int> observer;
+                observer.disconnect();
+                observer.connect(state);
+                observer.disconnect();
+                observer.connect(state);
+            }
+        };
+
+        for (int i = 0; i < 100; ++i)
+        {
+            thread t1(connect_observers);
+            thread t2(connect_observers);
+            t1.join();
+            t2.join();
+        }
+    }
+
+    {
+        State_Observer<int> observer1;
+        State_Observer<int> observer2;
+
+        auto connect_state = [&]()
+        {
+            for (int i = 0; i < 100; ++i)
+            {
+                State<int> state;
+                observer1.connect(state);
+                observer2.connect(state);
+                observer2.disconnect();
+                observer1.disconnect();
+
+                observer1.connect(state);
+                observer2.connect(state);
+            }
+        };
+
+        for (int i = 0; i < 100; ++i)
+        {
+            thread t(connect_state);
+            t.join();
+        }
+    }
+
+    return true;
+}
+
 Test_Set state_tests()
 {
     return {
@@ -215,6 +346,8 @@ Test_Set state_tests()
         { "store-load", test_store_load },
         { "double-store-load", test_double_store_load },
         { "notification", test_notification },
+        { "stress", test_stress },
+        { "stress-connect-disconnect", stress_connect_disconnect },
     };
 }
 
