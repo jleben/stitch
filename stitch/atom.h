@@ -58,6 +58,9 @@ private:
 
     // If 'node' is current, just return it.
     // Otherwise, unref 'node', get current, ref it and return it.
+
+    // If hazard pointer can't be allocated, throws exception
+    // and 'node' is still valid.
     Node * get_current(Node * node)
     {
         Node * c = d_current.load();
@@ -65,10 +68,14 @@ private:
         if (c == node)
             return node;
 
-        unref(node);
-
+        // NOTE: Allocate hazard pointer before releasing node,
+        // so that node is still valid if allocation fails and
+        // throws exception.
         Detail::Hazard_Pointer<Node> & hp = Detail::Hazard_Pointers::acquire<Node>();
         auto & h = hp.pointer;
+
+        unref(node);
+
 
         for(;; c = d_current.load())
         {
