@@ -17,33 +17,6 @@ The foundation of thread communication are data structures that can be collabora
 - [Atom](@ref Stitch::Atom): Lock-free multi-writer-multi-reader atomic value of any type (regardless of size).
 - [Set](@ref Stitch::Set): An unordered dynamically-sized set of items with lock-free iteration.
 
-Connections
------------
-
-Connections help with dynamically managing the communication of one thread with multiple other threads. They improve modularity: they enable writing classes which are agnostic of who they communicate with, while an external process manages their connections with multiple other objects.
-
-Endpoints of connections are represented by the [Server](@ref Stitch::Server) and [Client](@ref Stitch::Client) classes,
-and connections are managed by [connect](@ref Stitch::connect) and [disconnect](@ref Stitch::disconnect).
-
-Read more on the @subpage connections page...
-
-Example:
-
-    Stitch::Server<atomic<int>> server1;
-    Stitch::Server<atomic<int>> server2;
-    Stitch::Client<atomic<int>> client;
-
-    Stitch::connect(client, server1);
-    Stitch::connect(client, server2);
-
-    thread s1([&](){ server->store(1); });
-
-    thread s2([&](){ server->store(2); });
-
-    thread c([&]()
-    {
-        for(auto & data : client) { cout << data.load() << endl; }
-    });
 
 Events
 ------
