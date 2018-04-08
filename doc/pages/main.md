@@ -1,11 +1,31 @@
-Introduction {#mainpage}
-============
+# Introduction {#mainpage}
 
-Stitch is a C++ library that provides basic building blocks for communication between threads. It aims to be suitable for real-time applications; all the time-critical operations have at least the lock-free progress guarantee and low average time complexity.
+Stitch is a C++ library for communication and synchronization of threads and the outside world, suitable for real-time applications.
+
+# Principles
+
+The design of Stitch is guided by the following principles:
+
+### Modularity
+
+Instead of implementing a particular communication model (e.g. Actors, Communicating Sequential Processes, ...), Stitch provides basic building blocks. The blocks are easy to compose, and the user is free to compose them in the way most suitable for their application.
+
+However, Stitch does provide implementations of several common [communication patterns](#patterns) built on top of the basic blocks.
+
+### Separation of Concerns
+
+Stitch separates two concerns:
+1. Information: Producing and consuming data; addressed by [Shared Data Structures](#shared-data).
+2. Time: Waiting for something to happen, for example data to be produced and consumed; addressed by the [Event System](#events).
+
+Despite striving to separate these concerns, Stitch makes sure the classes that represent them are easy to compose. This is demonstrated by Stitch's higher-level classes implementing common [communication patterns](#patterns).
+
+### Real-time safety
+
+Stitch aims to be suitable for real-time applications. Its goal is to provide at least lock-free progress guarantees and linear or constant time complexity for as many operations as possible. Progress guarantees and complexity should be documented for each individual operation (work in progress).
 
 
-Shared Data Structures
-----------------------
+# Shared Data Structures {#shared-data}
 
 The foundation of thread communication are data structures that can be collaboratively used by multiple threads:
 
@@ -18,8 +38,7 @@ The foundation of thread communication are data structures that can be collabora
 - [Set](@ref Stitch::Set): An unordered dynamically-sized set of items with lock-free iteration.
 
 
-Events
-------
+# Events {#events}
 
 An essential part of thread interaction is synchronization of threads in time. In addition, real-time applications need to wait and respond to data arriving from the outside world. The event system provides a convenient interface for waiting for and reacting to multiple types of events.
 
@@ -60,3 +79,7 @@ Example:
     });
 
     reactor.run(Stitch::Event_Reactor::Wait);
+
+# Patterns {#patterns}
+
+
