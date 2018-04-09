@@ -13,6 +13,15 @@ using std::mutex;
 // Unordered set.
 // Element type T must support euqality comparison (operator '==').
 
+/*! \brief Unordered set.
+ *
+ * Element type T must support equality comparison (operator '==').
+ *
+ * Progress guarantees in method descriptions use the following parameters:
+ * - N = Number of elements currently in the set.
+ * - K = Number of hazard pointers in use.
+ * - H = Maximum allowable number of hazard pointers.
+ */
 template <typename T>
 class Set
 {
@@ -30,13 +39,21 @@ private:
 
 public:
 
-    // Wait-free
-    // O(1)
+    /*!
+     * \brief Default constructor.
+     *
+     * - Progress: Wait-free
+     * - Time complexity: O(1)
+     */
 
     Set() {}
 
-    // Blocking
-    // O(N)
+    /*!
+     * \brief Destructor.
+     *
+     * - Progress: Blocking
+     * - Time complexity: Asymptotic O(N). Worst-case O(N + H).
+     */
 
     ~Set()
     {
@@ -48,16 +65,24 @@ public:
     Set(const Set &) = delete;
     Set & operator=(const Set &) = delete;
 
-    // Wait-free
-    // O(1)
+    /*!
+     * \brief Returns whether the set contains no elements.
+     *
+     * - Progress: Wait-free
+     * - Time complexity: O(1)
+     */
 
     bool empty() const
     {
         return head.next == nullptr;
     }
 
-    // Blocking
-    // O(N)
+    /*!
+     * \brief Inserts the given value if it is not already in the set.
+     *
+     * - Progress: Blocking
+     * - Time complexity: O(N)
+     */
 
     void insert(const T & value)
     {
@@ -83,8 +108,14 @@ public:
         prev->next = node;
     }
 
-    // Blocking
-    // O(N)
+    /*!
+     * \brief Removes the given value if it is in the set.
+     *
+     * Returns whether the value was in the set.
+     *
+     * - Progress: Blocking
+     * - Time complexity: Asymptotic O(N). Worst-case O(N + H).
+     */
 
     bool remove(const T & value)
     {
@@ -108,8 +139,12 @@ public:
         return false;
     }
 
-    // Blocking
-    // O(N)
+    /*!
+     * \brief Removes all elements.
+     *
+     * - Progress: Blocking
+     * - Time complexity: Asymptotic O(N). Worst-case O(N + H).
+     */
 
     void clear()
     {
@@ -126,8 +161,12 @@ public:
         }
     }
 
-    // Lockfree
-    // O(N)
+    /*!
+     * \brief Returns whether the given value is in the set.
+     *
+     * - Progress: Lock-free.
+     * - Time complexity: O(N)
+     */
 
     bool contains(const T & value)
     {
@@ -140,6 +179,12 @@ public:
         return false;
     }
 
+    /*!
+     * Progress guarantees in method descriptions use the following parameters:
+     * - N = Number of elements currently in the set.
+     * - K = Number of hazard pointers in use.
+     * - H = Maximum allowable number of hazard pointers.
+     */
     struct Iterator
     {
         Iterator(Node * head): head(head)
@@ -159,6 +204,10 @@ public:
             hp1.pointer = nullptr;
         }
 
+        /*!
+         * - Progress: Wait-free.
+         * - Time complexity: O(1).
+         */
         Iterator & operator=(const Iterator & other)
         {
             head = other.head;
@@ -167,6 +216,10 @@ public:
             return *this;
         }
 
+        /*!
+         * - Progress: Wait-free.
+         * - Time complexity: O(1).
+         */
         ~Iterator()
         {
             hp0.pointer = hp1.pointer = nullptr;
@@ -174,24 +227,37 @@ public:
             hp1.release();
         }
 
+        /*!
+         * - Progress: Wait-free.
+         * - Time complexity: O(1).
+         */
         bool operator==(const Iterator & other) const
         {
             return hp0.pointer == other.hp0.pointer;
         }
 
+        /*!
+         * - Progress: Wait-free.
+         * - Time complexity: O(1).
+         */
         bool operator!=(const Iterator & other) const
         {
             return !(*this == other);
         }
 
+        /*!
+         * - Progress: Wait-free.
+         * - Time complexity: O(1).
+         */
         T & operator*()
         {
             return hp0.pointer.load()->value;
         }
 
-        // Lockfree
-        // O(N)
-
+        /*!
+         * - Progress: Lock-free.
+         * - Time complexity: O(N + K).
+         */
         Iterator & operator++()
         {
             auto &h0 = hp0.pointer;
@@ -238,12 +304,20 @@ public:
         Detail::Hazard_Pointer<Node> & hp1 = Detail::Hazard_Pointers::acquire<Node>();
     };
 
+    /*!
+     * - Progress: Wait-free.
+     * - Time complexity: O(1).
+     */
     Iterator begin()
     {
         Iterator it(&head);
         return ++it;
     }
 
+    /*!
+     * - Progress: Wait-free.
+     * - Time complexity: O(1).
+     */
     Iterator end()
     {
         return Iterator(nullptr);
