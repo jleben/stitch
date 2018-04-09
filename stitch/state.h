@@ -27,14 +27,6 @@ struct State_Data
 
 template <typename T> struct State_Observer_Data
 {
-    State_Observer_Data(const shared_ptr<State_Data<T>> & state, T value):
-        state(state),
-        reader(state->atom, value)
-    {}
-
-    // NOTE: Mind the order: state must be destoyed after reader.
-    shared_ptr<Detail::State_Data<T>> state;
-    AtomReader<T> reader;
     Signal signal;
 };
 
@@ -173,11 +165,12 @@ public:
       The default value is returned by \ref load and \ref value
       when the observer is not connected.
 
-      - Progress: Wait-free.
+      - Progress: Blocking.
       - Time complexity: O(1).
     */
     State_Observer(const T & default_value = T()):
         d_default_value(default_value),
+        d_shared(std::make_shared<Detail::State_Observer_Data<T>>()),
         d_current_value(&d_default_value)
     {}
 
@@ -200,10 +193,11 @@ public:
     {
         disconnect();
 
-        d_shared = std::make_shared<Detail::State_Observer_Data<T>>(state.d_shared, d_default_value);
-        state.d_shared->observers.insert(d_shared);
+        d_state = state.d_shared;
+        d_reader = std::make_shared<AtomReader<T>>(d_state->atom, d_default_value);
+        d_state->observers.insert(d_shared);
 
-        d_current_value = &d_shared->reader.value();
+        d_current_value = &d_reader->value();
     }
 
     /*! \brief If connected to a State, disconnects from it.
@@ -213,12 +207,17 @@ public:
      */
     void disconnect()
     {
-        if (!d_shared)
+        if (!d_state)
             return;
 
-        d_shared->state->observers.remove(d_shared);
-        d_shared.reset();
+        // Break connection
+        d_state->observers.remove(d_shared);
 
+        // Delete reader and possibly state data
+        d_reader.reset();
+        d_state.reset();
+
+        // Restore default value as current value
         d_current_value = &d_default_value;
     }
 
@@ -236,10 +235,10 @@ public:
      */
     const T & load()
     {
-        if (d_shared)
+        if (d_reader)
         {
-            d_shared->reader.load();
-            d_current_value = &d_shared->reader.value();
+            d_reader->load();
+            d_current_value = &d_reader->value();
         }
 
         return *d_current_value;
@@ -269,7 +268,11 @@ public:
 
 private:
     T d_default_value;
+    // NOTE: Mind the order: state must be destoyed after reader.
     shared_ptr<Detail::State_Observer_Data<T>> d_shared { nullptr };
+    shared_ptr<Detail::State_Data<T>> d_state { nullptr };
+    shared_ptr<AtomReader<T>> d_reader { nullptr };
+
     const T * d_current_value = nullptr;
 };
 

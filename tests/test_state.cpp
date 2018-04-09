@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <sstream>
+#include <cstdint>
 
 using namespace Stitch;
 using namespace Testing;
@@ -30,6 +31,15 @@ bool test_observer_before_connecting()
             test.assert("Value is 5.", observer.value() == 5);
             observer.load();
         }
+    }
+
+    {
+        // Just make sure there's no crash when accessing event before connecting.
+        // However, we have to do something with the event to prevent the call
+        // to 'changed' from being optimized away.
+        State_Observer<int> observer;
+        auto event = observer.changed();
+        test.assert("Event is accessible before connection: " + to_string(uintptr_t(&event)), true);
     }
 
     return test.success();
