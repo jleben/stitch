@@ -53,6 +53,7 @@ You can wait for a single event synchronously using the [wait](@ref Stitch::wait
 
 [Event]: @ref Stitch::Event
 
+See the [examples](examples.html#events).
 
 # Patterns {#patterns}
 
@@ -63,7 +64,9 @@ The philosophy is that each thread should be agnostic of threads that it communi
 Therefore, each thread is represented by one instance of a class, and these objects can by dynamically connected and disconnected. After a connection is established, a thread's representing object can be destroyed at any moment and is thereby automatically and safely disconnected from all peers.
 
 - [Stream_Producer][] and [Stream_Consumer][]: Communicating streams of items from one source to multiple destinations or from multiple sources to a single destination.
+  See [examples](examples.html#streams)).
 - [State][] and [State_Observer][]: Communicating the latest state of one thread to multiple observers.
+  See [examples](examples.html#state)).
 
 [Stream_Producer]: @ref Stitch::Stream_Producer
 [Stream_Consumer]: @ref Stitch::Stream_Consumer
