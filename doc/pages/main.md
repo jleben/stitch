@@ -53,33 +53,20 @@ You can wait for a single event synchronously using the [wait](@ref Stitch::wait
 
 [Event]: @ref Stitch::Event
 
-Example:
-
-    Stitch::Timer timer;
-    Stitch::Signal signal;
-
-    timer.start(chrono::milliseconds(1000));
-
-    thread t1([&]()
-    {
-        this_thread::sleep_for(chrono::milliseconds(500));
-        signal.notify();
-    });
-
-    Stitch::Event_Reactor reactor;
-
-    reactor.subscribe(timer.event(), [&]()
-    {
-        cout << "Timer" << endl;
-    });
-
-    reactor.subscribe(signal.event(), [&]()
-    {
-        cout << "Signal" << endl;
-    });
-
-    reactor.run(Stitch::Event_Reactor::Wait);
 
 # Patterns {#patterns}
 
+Building on the shared data structures and event system, Stitch provides classes that implement common communication patterns.
+
+The philosophy is that each thread should be agnostic of threads that it communicates with. On one hand, each thread should have all the resources for communication ready at all times. On the other hand, threads can come and go and dynamically establish communication channels.
+
+Therefore, each thread is represented by one instance of a class, and these objects can by dynamically connected and disconnected. After a connection is established, a thread's representing object can be destroyed at any moment and is thereby automatically and safely disconnected from all peers.
+
+- [Stream_Producer][] and [Stream_Consumer][]: Communicating streams of items from one source to multiple destinations or from multiple sources to a single destination.
+- [State][] and [State_Observer][]: Communicating the latest state of one thread to multiple observers.
+
+[Stream_Producer]: @ref Stitch::Stream_Producer
+[Stream_Consumer]: @ref Stitch::Stream_Consumer
+[State]: @ref Stitch::State
+[State_Observer]: @ref Stitch::State_Observer
 
