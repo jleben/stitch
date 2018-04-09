@@ -53,6 +53,10 @@ template <typename T> class State_Observer;
   The last stored value is accessed by a connected observer using \ref State_Observer::load.
 
   Unless otherwise noted, the methods of this class should only be called from a single thread.
+
+  Progress guarantees use the following parameters:
+  - C = Number of connected observers.
+  - K = Number of hazard pointers in use.
  */
 template <typename T>
 class State
@@ -62,6 +66,9 @@ class State
 public:
     /*!
      * \brief Constructs the State and stores a default-constructed value of type T.
+     *
+     * - Progress: Blocking
+     * - Time complexity: O(1)
      */
 
     State():
@@ -71,6 +78,9 @@ public:
 
     /*!
      * \brief Constructs the State and stores the given value.
+     *
+     * - Progress: Blocking
+     * - Time complexity: O(1)
      */
 
     State(const T & value):
@@ -78,6 +88,12 @@ public:
         d_writer(d_shared->atom)
     {}
 
+    /*!
+     * - Progress: Blocking
+     * - Time complexity: O(1)
+     */
+
+    ~State() {}
 
     /*! \brief Returns a reference to the value to be written.
 
@@ -85,6 +101,9 @@ public:
         by calling \ref store.
 
         The returned reference is only valid only the next call to \ref store.
+
+       - Progress: Wait-free
+       - Time complexity: O(1)
     */
 
     T & value() { return d_writer.value(); }
@@ -92,6 +111,9 @@ public:
     /*! \brief Makes \ref value available to observers and notifies them.
      *
      * Observers are notified via their \ref State_Observer::changed "changed" event.
+     *
+     * - Progress: Lock-free.
+     * - Time complexity: O(C + K).
      */
     void store()
     {
@@ -109,6 +131,9 @@ public:
      *
      *     observer.value() = value;
      *     observer.store();
+     *
+     * - Progress: Lock-free.
+     * - Time complexity: O(C + K).
      */
     void store(const T & value)
     {
@@ -133,6 +158,10 @@ private:
   activated.
 
   Unless otherwise noted, the methods of this class should only be called from a single thread.
+
+  Progress guarantees use the following parameters:
+  - C = Number of connected observers.
+  - H = Maximum allowable number of hazard pointers.
 */
 
 template <typename T>
@@ -143,18 +172,30 @@ public:
 
       The default value is returned by \ref load and \ref value
       when the observer is not connected.
+
+      - Progress: Wait-free.
+      - Time complexity: O(1).
     */
     State_Observer(const T & default_value = T()):
         d_default_value(default_value),
         d_current_value(&d_default_value)
     {}
 
+    /*!
+      - Progress: Blocking.
+      - Time complexity: Asymptotic O(C). Worst-case O(C + H).
+     */
     ~State_Observer()
     {
         disconnect();
     }
 
-    /*! \brief Connects to a \ref State. */
+    /*! \brief Connects to a \ref State.
+     *
+     * - Progress: Blocking.
+     * - Time complexity: O(C).
+     */
+
     void connect(State<T> & state)
     {
         disconnect();
@@ -165,7 +206,11 @@ public:
         d_current_value = &d_shared->reader.value();
     }
 
-    /*! \brief If connected to a State, disconnects from it. */
+    /*! \brief If connected to a State, disconnects from it.
+
+      - Progress: Blocking.
+      - Time complexity: Asymptotic O(C). Worst-case O(C + H).
+     */
     void disconnect()
     {
         if (!d_shared)
@@ -185,6 +230,9 @@ public:
 
       When the observer is not connected this method returns
       a reference to the default value passed to the constructor.
+
+      - Progress: Wait-free.
+      - Time complexity: O(1).
      */
     const T & load()
     {
@@ -200,13 +248,20 @@ public:
     /*! \brief Returns a reference to the last loaded value.
      *
      * The returned reference is only valid until the next call to \ref load.
+     *
+     * - Progress: Wait-free.
+     * - Time complexity: O(1).
      */
     const T & value()
     {
         return *d_current_value;
     }
 
-    /*! \brief An \ref Event activated whenever a new value is stored by a connected \ref State. */
+    /*! \brief An \ref Event activated whenever a new value is stored by a connected \ref State.
+     *
+     * - Progress: Wait-free.
+     * - Time complexity: O(1).
+     */
     Event changed()
     {
         return d_shared->signal.event();
