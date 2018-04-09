@@ -11,7 +11,6 @@ Test_Set lockfree_set_tests();
 Test_Set spmc_atom_tests();
 Test_Set atom_tests();
 Test_Set stream_tests();
-Test_Set notice_tests();
 Test_Set state_tests();
 Test_Set connection_tests();
 Test_Set signal_tests();
@@ -32,9 +31,7 @@ int main(int argc, char * argv[])
         { "atom", atom_tests() },
         { "connections", connection_tests() },
         { "stream", stream_tests() },
-        { "notice", notice_tests() },
         { "state", state_tests() },
-        { "notice", notice_tests() },
         { "signal", signal_tests() },
         { "timer", timer_tests() },
         { "file", file_tests() },
