@@ -11,7 +11,7 @@ using std::atomic;
 using std::mutex;
 
 // Unordered set.
-// Element type T must support euqality comparison (operator '==').
+// Element type T must support equality comparison (operator '==').
 
 /*! \brief Unordered set.
  *
@@ -22,6 +22,30 @@ using std::mutex;
  * - K = Number of hazard pointers in use.
  * - H = Maximum allowable number of hazard pointers.
  */
+
+// Main goal: lock-free iteration using an iterator.
+
+// When iterating, the current element could be in in the process of being removed.
+// In that case, some implementations assist the removal and attempt to complete it.
+// Removal might trigger dynamic memory deallocation though.
+// We would like iteration to be lock-free even when memory deallocation is not.
+// So we don't assist the removal.
+
+// If the current element was removed, we also can not continue.
+// That's because this element's link doesn't make the next node reachable
+// from root. Consequently, the next node (or the next of next...)
+// might also have been removed and even reclaimed, thus making the link invalid
+// before we can even set a hazard pointer to it.
+// Instead, we need to restart iteration from head.
+// Note: M.M.Michael does the same in his 2004 paper on hazard pointers.
+
+// So we need a way to restart the iteration from head, but skip nodes
+// already visited. For a simple approximation to finding whether a node was
+// already visited, we order nodes by their address, and assume we visited
+// all nodes with address lower than the current node's.
+// This is an over-approximation: we may skip some new nodes, but we will
+// never re-visit a node.
+
 template <typename T>
 class Set
 {
