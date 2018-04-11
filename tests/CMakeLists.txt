@@ -23,6 +23,7 @@ set(test_sources
     test_queue_mpmc_waitfree.cpp
     test_queue_mpmc_lockfree.cpp
     test_lockfree_set.cpp
+    test_multiset.cpp
     test_atom_spmc.cpp
     test_streams.cpp
     test_state.cpp

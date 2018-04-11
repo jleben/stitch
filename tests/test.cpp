@@ -8,6 +8,7 @@ Test_Set waitfree_mpsc_queue_tests();
 Test_Set waitfree_mpmc_queue_tests();
 Test_Set lockfree_mpmc_queue_tests();
 Test_Set lockfree_set_tests();
+Test_Set multiset_tests();
 Test_Set spmc_atom_tests();
 Test_Set atom_tests();
 Test_Set stream_tests();
@@ -27,6 +28,7 @@ int main(int argc, char * argv[])
         { "waitfree-mpmc-queue", waitfree_mpmc_queue_tests() },
         { "lockfree-mpmc-queue", lockfree_mpmc_queue_tests() },
         { "lockfree-set", lockfree_set_tests() },
+        { "multiset", multiset_tests() },
         { "spmc-atom", spmc_atom_tests() },
         { "atom", atom_tests() },
         { "connections", connection_tests() },

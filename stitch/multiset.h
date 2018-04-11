@@ -56,12 +56,15 @@ using std::mutex;
 // with removing all marked nodes along the way.
 
 template <typename T>
-class Set
+class Multiset
 {
     using Hazard_Pointers = Detail::Hazard_Pointers;
-    using Hazard_Pointer = Detail::Hazard_Pointer;
+    template <typename P> using Hazard_Pointer = Detail::Hazard_Pointer<P>;
 
 private:
+
+    struct Node;
+
     struct Link
     {
         atomic<Node*> next { nullptr };
@@ -86,7 +89,7 @@ public:
      * - Time complexity: O(1)
      */
 
-    Set() {}
+    Multiset() {}
 
     /*!
      * \brief Destructor.
@@ -95,15 +98,15 @@ public:
      * - Time complexity: Asymptotic O(N). Worst-case O(N + H).
      */
 
-    ~Set()
+    ~Multiset()
     {
         clear();
     }
 
     // Delete copy constructor and assignment operator
 
-    Set(const Set &) = delete;
-    Set & operator=(const Set &) = delete;
+    Multiset(const Multiset &) = delete;
+    Multiset & operator=(const Multiset &) = delete;
 
     /*!
      * \brief Returns whether the set contains no elements.
@@ -117,75 +120,31 @@ public:
         return head.next == nullptr;
     }
 
-    /*!
-     * \brief Inserts the given value if it is not already in the set.
-     *
-     * - Progress: Lockfree, if allocator is lockfree.
-     * - Time complexity: O(N)
-     */
+private:
 
-    void insert(const T & value)
+    static bool is_marked(void * p)
     {
-        // Create node
-        Node *node = new Node;
-        node->value = value;
+        return uintptr_t(p) bitand 1;
+    }
 
-        // Insert nodes in increasing order of their addresses
+    template <typename P>
+    static P * marked(P * p)
+    {
+        return (P*)(uintptr_t(p) bitor 1);
+    }
 
-        auto & h0 = Hazard_Pointers::acquire();
-        auto & h1 = Hazard_Pointers::acquire();
-
-        auto & hp0 = h0.pointer;
-        auto & hp1 = h1.pointer;
-
-start:
-        for(;;)
-        {
-            Link * prev = &head;
-            Node * cur = prev->next.load();
-
-            while(cur != nullptr && cur < node)
-            {
-                hp1.store(cur);
-
-                // Restart if previous was removed (prev->next is marked)
-                // or current was removed
-                if (prev->next.load() != cur)
-                    goto start;
-
-                Node * next = cur->next.load();
-
-                if (next & 1)
-                    // Current node was removed
-                    goto start;
-
-                hp0.store(cur);
-                prev = cur;
-                cur = next;
-            }
-
-            node->next.store(cur);
-
-            if(!prev->next.compare_exchange_strong(cur, node))
-                continue;
-        }
-
-        hp0.store(nullptr);
-        hp1.store(nullptr);
-
-        h0.release();
-        h1.release();
-
-        return;
+    template <typename P>
+    static P * unmarked(P * p)
+    {
+        return (P*)(uintptr_t(p) xor 1);
     }
 
     struct Internal_Iterator
     {
-        Internal_Iterator()
-        {
-            h0 = Hazard_Pointers::acquire();
-            h1 = Hazard_Pointers::acquire();
-        }
+        Internal_Iterator():
+            h0(Hazard_Pointers::acquire<Node>()),
+            h1(Hazard_Pointers::acquire<Node>())
+        {}
 
         ~Internal_Iterator()
         {
@@ -202,15 +161,20 @@ start:
         template <typename F>
         bool find(Link * head, F func)
         {
+            auto & hp0 = h0.pointer;
+            auto & hp1 = h1.pointer;
 start:
             for(;;)
             {
-                Link * prev = head;
-                Node * cur = prev->next.load();
-                Node * next;
+                printf("Start\n");
+
+                prev = head;
+                cur = prev->next.load();
 
                 while(cur != nullptr)
                 {
+                    printf("Cur %p\n", cur);
+
                     hp1.store(cur);
 
                     // cur is safe if there is a link to it (prev->next)
@@ -218,16 +182,26 @@ start:
                     if (prev->next.load() != cur)
                         goto start;
 
+                    printf("Safe\n");
+
                     next = cur->next.load();
 
-                    if (next bitand 1)
+                    if (is_marked(next))
                     {
-                        if (!prev->next.compare_exchange_strong(cur, next xor 1))
+                        printf("Marked\n");
+
+                        if (!prev->next.compare_exchange_strong(cur, unmarked(next)))
                         {
+                            printf("Failed to remove\n");
+
                             // Either someone else has already removed cur,
                             // or prev has been removed and prev->next is marked.
                             goto start;
                         }
+
+                        printf("Removed\n");
+
+                        cur->removed.store(true);
 
                         Hazard_Pointers::reclaim(cur);
 
@@ -235,16 +209,21 @@ start:
                         continue;
                     }
 
-                    if (func(Node * cur))
+                    if (func(cur))
+                    {
+                        printf("Found\n");
                         return true;
+                    }
+
+                    printf("This is not the node you are looking for.\n");
 
                     hp0.store(cur);
                     prev = cur;
                     cur = next;
                 }
-            }
 
-            return false;
+                return false;
+            }
         }
 
     private:
@@ -257,6 +236,41 @@ start:
         Node * next;
     };
 
+public:
+
+    /*!
+     * \brief Inserts the given value if it is not already in the set.
+     *
+     * - Progress: Lockfree, if allocator is lockfree.
+     * - Time complexity: O(N)
+     */
+
+    void insert(const T & value)
+    {
+        // Create node
+
+        Node *node = new Node;
+        node->value = value;
+
+        Internal_Iterator iter;
+
+        for(;;)
+        {
+            // Find first node with address larger than new node's.
+            iter.find(&head, [&](Node * cur)
+            {
+                return cur > node;
+            });
+
+            // Try insert node before found node
+            node->next.store(iter.cur);
+
+            if(iter.prev->next.compare_exchange_strong(iter.cur, node))
+                return;
+        }
+    }
+
+
     /*!
      * \brief Removes the given value if it is in the set.
      *
@@ -266,23 +280,22 @@ start:
      * - Time complexity: Asymptotic O(N). Worst-case O(N + H).
      */
 
-    // FIXME: Make Hazard_Pointers::reclaim lockfree!
     bool remove(const T & value)
     {
-        Internal_Iterator iter(&head);
+        Internal_Iterator iter;
 
         for(;;)
         {
             bool was_found = iter.find(&head, [&](Node * node)
             {
-                node->value == value;
+                return node->value == value;
             });
 
             if (!was_found)
                 return false;
 
             // Try mark this for removal
-            if (iter.cur->next.compare_exchange_strong(iter.next, iter.next | 1))
+            if (iter.cur->next.compare_exchange_strong(iter.next, marked(iter.next)))
                 break;
 
             // Someone else has marked this node for removal.
@@ -293,6 +306,9 @@ start:
         {
             // The node is not reachable, so it can be reclaimed.
             // (If it can't, never mind, someone else will reclaim it).
+            // FIXME: Release hazard pointers owned by iter, to reclaim as much as possible.
+            // FIXME: Make Hazard_Pointers::reclaim lockfree!
+            iter.cur->removed.store(true);
             Hazard_Pointers::reclaim(iter.cur);
         }
 
@@ -308,17 +324,7 @@ start:
 
     void clear()
     {
-        std::lock_guard<mutex> lock(d_mux);
-
-        Node * n = head.next;
-        head.next = nullptr;
-        while(n)
-        {
-            Node * next = n->next;
-            n->removed = true;
-            Detail::Hazard_Pointers::reclaim(n);
-            n = next;
-        }
+        // FIXME
     }
 
     /*!
@@ -347,7 +353,7 @@ start:
      */
     struct Iterator
     {
-        Iterator(Node * head): head(head)
+        Iterator(Link * head): head(head)
         {
             hp0.pointer = head;
             hp1.pointer = nullptr;
@@ -361,7 +367,7 @@ start:
         {
             head = other.head;
             hp0.pointer = other.hp0.pointer.load();
-            hp1.pointer = nullptr;
+            hp1.pointer = other.hp1.pointer.load();
         }
 
         /*!
@@ -372,7 +378,7 @@ start:
         {
             head = other.head;
             hp0.pointer = other.hp0.pointer.load();
-            hp1.pointer = nullptr;
+            hp1.pointer = other.hp1.pointer.load();
             return *this;
         }
 
@@ -393,7 +399,7 @@ start:
          */
         bool operator==(const Iterator & other) const
         {
-            return hp0.pointer == other.hp0.pointer;
+            return hp1.pointer == other.hp1.pointer;
         }
 
         /*!
@@ -411,7 +417,7 @@ start:
          */
         T & operator*()
         {
-            return hp0.pointer.load()->value;
+            return hp1.pointer.load()->value;
         }
 
         /*!
@@ -423,7 +429,7 @@ start:
             auto &h0 = hp0.pointer;
             auto &h1 = hp1.pointer;
 
-            Node * current;
+            Link * current;
             Node * next;
 
             current = h0.load();
@@ -458,10 +464,12 @@ start:
         }
 
     private:
-        Node * head = nullptr;
-        Node * last_visited_pos = nullptr;
-        Detail::Hazard_Pointer<Node> & hp0 = Detail::Hazard_Pointers::acquire<Node>();
-        Detail::Hazard_Pointer<Node> & hp1 = Detail::Hazard_Pointers::acquire<Node>();
+        Link * head = nullptr;
+        void * last_visited_pos = nullptr;
+        // Current node as link
+        Hazard_Pointer<Link> & hp0 = Hazard_Pointers::acquire<Link>();
+        // Current node as Node (null when hp0 is head)
+        Hazard_Pointer<Node> & hp1 = Hazard_Pointers::acquire<Node>();
     };
 
     /*!
