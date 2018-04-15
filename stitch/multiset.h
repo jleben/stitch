@@ -120,25 +120,35 @@ public:
         return head.next == nullptr;
     }
 
+    enum Mark
+    {
+        Node_To_Remove = 1,
+        Node_Removed = 2
+    };
+
+    // We assume any Node * is aligned at least to 4 bytes.
+    // So we have the last 2 bits of space for the mark.
+    static int mark(Node * p)
+    {
+        return uintptr_t(p) bitand 3;
+    }
+
+    static bool is_marked(Node * p)
+    {
+        return mark(p) != 0;
+    }
+
+    static Node * marked(Node * p, Mark mark)
+    {
+        return (Node*)(~(~uintptr_t(p) | 3) | mark);
+    }
+
+    static Node * unmarked(Node * p)
+    {
+        return (Node*)(~(~uintptr_t(p) | 3));
+    }
+
 private:
-
-    static bool is_marked(void * p)
-    {
-        return uintptr_t(p) bitand 1;
-    }
-
-    template <typename P>
-    static P * marked(P * p)
-    {
-        return (P*)(uintptr_t(p) bitor 1);
-    }
-
-    template <typename P>
-    static P * unmarked(P * p)
-    {
-        return (P*)(uintptr_t(p) xor 1);
-    }
-
     struct Internal_Iterator
     {
         Internal_Iterator():
@@ -196,12 +206,15 @@ start:
 
                             // Either someone else has already removed cur,
                             // or prev has been removed and prev->next is marked.
+
+                            // Could be optimized: if prev->next is not marked,
+                            // just retry with cur = prev->next
                             goto start;
                         }
 
                         printf("Removed\n");
 
-                        cur->removed.store(true);
+                        cur->next.store(marked(next, Node_Removed));
 
                         Hazard_Pointers::reclaim(cur);
 
@@ -295,7 +308,7 @@ public:
                 return false;
 
             // Try mark this for removal
-            if (iter.cur->next.compare_exchange_strong(iter.next, marked(iter.next)))
+            if (iter.cur->next.compare_exchange_strong(iter.next, marked(iter.next, Node_To_Remove)))
                 break;
 
             // Someone else has marked this node for removal.
@@ -308,7 +321,7 @@ public:
             // (If it can't, never mind, someone else will reclaim it).
             // FIXME: Release hazard pointers owned by iter, to reclaim as much as possible.
             // FIXME: Make Hazard_Pointers::reclaim lockfree!
-            iter.cur->removed.store(true);
+            iter.cur->next.store(marked(iter.next, Node_Removed));
             Hazard_Pointers::reclaim(iter.cur);
         }
 
@@ -438,6 +451,16 @@ public:
             {
                 next = current->next;
                 h1 = next;
+
+                // FIXME: With multiple concurrent executions of 'remove',
+                // there is no way to ensure 'current' node has not been removed
+                // before hazard pointer was set to 'next',
+                // other than by checking a property that 'remove' sets *before*
+                // the removal (e.g. marking 'next' as 'Node_To_Remove'.
+
+                // We need another mechanism, like reference counters on nodes,
+                // but then the problem is avoiding node deallocation during
+                // iteration.
 
                 if (current->removed)
                 {

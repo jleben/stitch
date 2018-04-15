@@ -52,15 +52,6 @@ bool test()
 
     test.assert("Can't remove 456.", !mset.remove(456));
 
-    test.assert("Insert 5.", mset.insert(5));
-    test.assert("Insert 5.", mset.insert(5));
-    test.assert("Insert 5.", mset.insert(5));
-
-    for(auto & i : mset)
-    {
-        cout << i << endl;
-    }
-
     return test.success();
 }
 
