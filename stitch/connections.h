@@ -144,6 +144,9 @@ public:
         };
     }
 
+    Client(const Client &) = delete;
+    Client & operator=(const Client &) = delete;
+
     /*!
      * \brief Returns an iterator representing the first shared object.
      */
@@ -229,6 +232,9 @@ public:
                 peer->links.remove(link2);
         };
     }
+
+    Server(const Server &) = delete;
+    Server & operator=(const Server &) = delete;
 
     /*!
      * \brief Makes `*server` return a reference to the shared object.

@@ -87,6 +87,10 @@ public:
 
     ~State() {}
 
+    // State is not copyable.
+    State(const State &) = delete;
+    State & operator=(const State &) = delete;
+
     /*! \brief Returns a reference to the value to be written.
 
         This value is made available to \ref State_Observer "State_Observers"
@@ -182,6 +186,10 @@ public:
     {
         disconnect();
     }
+
+    // State_Observer is not copyable.
+    State_Observer(const State_Observer &) = delete;
+    State_Observer & operator=(const State_Observer &) = delete;
 
     /*! \brief Connects to a \ref State.
      *
