@@ -125,7 +125,7 @@ public:
 
     /*! \brief Monitors event activations and invokes subscribed callbacks.
 
-      The \ref Mode parameter has the following effect:
+      The \p mode parameter has the following effect:
 
       - NoWait: Handles each currently active event once and returns without waiting at all.
       - Wait: If no event with a subscription is currently active,
