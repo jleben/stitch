@@ -271,6 +271,31 @@ static bool test_bulk()
     return test.success();
 }
 
+static bool test_bulk_array()
+{
+    Test test;
+
+    Stream_Producer<int> source;
+    Stream_Consumer<int> sink(10);
+
+    connect(source, sink);
+
+    constexpr int N = 5;
+    int input[N] = { 1, 3, 2, 4, 5 };
+    int output[N] = { 0, 0, 0, 0, 0 };
+
+    source.push(N, input);
+
+    sink.pop(N, output);
+
+    for (int i = 0; i < N; ++i)
+    {
+        test.assert("Transferred: " + to_string(output[i]), output[i] == input[i]);
+    }
+
+    return test.success();
+}
+
 Test_Set stream_tests()
 {
     return {
@@ -282,5 +307,6 @@ Test_Set stream_tests()
         { "one to many", test_one_to_many },
         { "many to one", test_many_to_one },
         { "bulk", test_bulk },
+        { "bulk-array", test_bulk_array },
     };
 }

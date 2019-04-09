@@ -50,6 +50,18 @@ public:
         return d_journal[d_tail] == false;
     }
 
+    /*!
+    \brief Adds an item to the queue.
+
+    The item \p value is added to the input end of the queue.
+
+    This can fail if the queue is full, in which case nothing is done.
+
+    \return True on success, false on failure.
+
+    - Progess: Wait-free
+    - Time complexity: O(1)
+    */
     bool push(const T & value)
     {
         int pos;
@@ -64,8 +76,30 @@ public:
         return true;
     }
 
+    /*!
+    \brief Adds items in bulk to the queue.
+
+    'count' consecutive item starting at the 'input_start' iterator are added to the input end of the queue.
+
+    This can fail if the queue does not have space for 'count' items, in which case nothing is done.
+
+    The 'input_start' type 'I' must satisfy the Input Iterator requirements, with `value_type` equal to T.
+    For example `T*`.
+    See: https://en.cppreference.com/w/cpp/named_req/InputIterator
+
+    \return True on success, false on failure.
+
+    For example:
+
+        Waitfree_MPSC_Queue<int> q(10);
+        int data[5];
+        q.push(5, data);
+
+    - Progess: Wait-free
+    - Time complexity: O(count)
+    */
     template <typename I>
-    bool push(int count, const I & input_start)
+    bool push(int count, I input_start)
     {
         int pos;
         if (!reserve_write(count, pos))
@@ -82,6 +116,20 @@ public:
 
         return true;
     }
+
+    /*!
+    \brief
+    Removes an item from the queue.
+
+    An item is removed from the output end of the queue and stored in \p value.
+
+    This can fail if the queue is empty, in which case nothing is done.
+
+    \return True on success, false on failure.
+
+    - Progess: Wait-free
+    - Time complexity: O(1)
+    */
 
     bool pop(T & value)
     {
@@ -101,8 +149,31 @@ public:
         return true;
     }
 
+    /*!
+    \brief Removes items in bulk from the queue.
+
+    'count' items are removed from the output end of the queue, and stored into consecutive locations starting at the 'output_start' iterator.
+
+    This can fail if there is less than 'count' items in the queue, in which case nothing is done.
+
+    The 'output_start' type 'O' must satisfy the Output Iterator requirements, with `value_type` equal to T.
+    For example `T*`.
+    See: https://en.cppreference.com/w/cpp/named_req/OutputIterator
+
+    \return True on success, false on failure.
+
+    For example:
+
+        Waitfree_MPSC_Queue<int> q(10);
+        int data[5];
+        q.pop(5, data);
+
+    - Progess: Wait-free
+    - Time complexity: O(count)
+    */
+
     template <typename O>
-    bool pop(int count, const O & output_start)
+    bool pop(int count, O output_start)
     {
         if (count > d_data.size())
             return false;

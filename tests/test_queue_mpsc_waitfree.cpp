@@ -80,6 +80,28 @@ static bool test_bulk()
     return test.success();
 }
 
+static bool test_bulk_array()
+{
+    Testing::Test test;
+
+    Waitfree_MPSC_Queue<int> q(10);
+
+    constexpr int N = 5;
+    int input[N] = { 1, 3, 2, 4, 5 };
+    int output[N] = { 0, 0, 0, 0, 0 };
+
+    q.push(N, input);
+
+    q.pop(N, output);
+
+    for (int i = 0; i < N; ++i)
+    {
+        test.assert("Transferred: " + to_string(output[i]), output[i] == input[i]);
+    }
+
+    return test.success();
+}
+
 static bool stress_test()
 {
     Testing::Test test;
@@ -164,6 +186,7 @@ Testing::Test_Set waitfree_mpsc_queue_tests()
     return {
         { "test", test },
         { "bulk", test_bulk },
+        { "bulk-array", test_bulk_array },
         { "stress", stress_test },
     };
 }

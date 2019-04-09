@@ -30,6 +30,9 @@ public:
 
     /*!
     \brief Maximum number of elements the queue can contain.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
     */
 
     int capacity() const
@@ -39,6 +42,9 @@ public:
 
     /*!
     \brief Whether the queue is full.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
     */
 
     bool full()
@@ -49,6 +55,9 @@ public:
 
     /*!
     \brief Whether the queue is empty.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
     */
 
     bool empty()
@@ -57,7 +66,10 @@ public:
     }
 
     /*!
-     * \brief Amount of elements in the queue.
+    \brief Amount of elements in the queue.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
      */
     int size()
     {
@@ -71,6 +83,9 @@ public:
     This can fail if the queue is full, in which case nothing is done.
 
     \return True on success, false on failure.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
     */
 
     bool push(const T & value)
@@ -92,6 +107,9 @@ public:
     This can fail if the queue is full, in which case nothing is done.
 
     \return True on success, false on failure.
+
+    - Progress: Wait-free
+    - Time complexity: O(count)
     */
 
     template <typename I>
@@ -138,6 +156,9 @@ public:
     This can fail if the queue is empty, in which case nothing is done.
 
     \return True on success, false on failure.
+
+    - Progress: Wait-free
+    - Time complexity: O(1)
     */
 
     bool pop(T & value)
@@ -160,6 +181,9 @@ public:
     This can fail if the queue is full, in which case nothing is done.
 
     \return True on success, false on failure.
+
+    - Progress: Wait-free
+    - Time complexity: O(count)
     */
 
     template <typename O>
