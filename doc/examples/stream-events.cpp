@@ -26,7 +26,7 @@ auto consumer_func = [&]()
     int count = 0;
     while(count < 10)
     {
-        wait(consumer.event());
+        wait(consumer.receive_event());
 
         Notification notification;
         while(consumer.pop(notification))
