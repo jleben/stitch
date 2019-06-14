@@ -1,3 +1,5 @@
+#pragma once
+
 #include "connections.h"
 #include "queue_mpsc_waitfree.h"
 #include "signal.h"
