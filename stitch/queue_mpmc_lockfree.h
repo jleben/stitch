@@ -21,6 +21,8 @@ public:
 
     bool push(const T& value)
     {
+
+
         int pos;
 
         while(true)
@@ -38,6 +40,12 @@ public:
             if (d_write_pos.compare_exchange_weak(iter, iter + 1))
                 break;
         }
+
+        // Not lock-free from the point of view that
+        // a producer stuck here will eventually block
+        // all consumers and other producers.
+        // But it seems conceptually impossible to avoid that with an array-based queue:
+        // everyone must wait at least while a producer is writing its data.
 
         d_data[pos].value = value;
         d_data[pos].state = Full;
