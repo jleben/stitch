@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <stdexcept>
 
 #include <unistd.h>
 #include <sys/timerfd.h>

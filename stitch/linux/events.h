@@ -4,6 +4,7 @@
 #include <vector>
 #include <list>
 #include <functional>
+#include <stdexcept>
 
 #include <sys/epoll.h>
 #include <poll.h>

@@ -5,6 +5,7 @@
 #include <chrono>
 #include <thread>
 #include <sstream>
+#include <memory>
 
 using namespace Testing;
 using namespace Stitch;

@@ -3,6 +3,7 @@
 #include <list>
 #include <algorithm>
 #include <cstring>
+#include <stdexcept>
 
 #include <unistd.h>
 #include <poll.h>
