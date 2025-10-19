@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 
 #include <unistd.h>
 #include <sys/eventfd.h>
