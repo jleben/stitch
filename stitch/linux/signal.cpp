@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <mutex>
 #include <list>
+#include <stdexcept>
 
 #include <unistd.h>
 #include <sys/eventfd.h>

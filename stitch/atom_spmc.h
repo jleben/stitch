@@ -4,6 +4,7 @@
 #include <atomic>
 #include <cstdint>
 #include <type_traits>
+#include <stdexcept>
 
 namespace Stitch {
 

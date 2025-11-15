@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        include:
+          - os: ubuntu-latest
+            platform: Linux
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Install CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: '3.27.x'
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -DSTITCH_BUILD_TESTS=ON \
+          -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Run Tests
+      working-directory: build/tests
+      run: |
+        set +e
+        ./tester 2>&1 | tee /dev/stderr | grep -q "The following tests failed:"
+        if [ $? -eq 0 ]; then
+          echo "Tests failed!"
+          exit 1
+        fi
+        set -e
+
+    - name: Display Build Info
+      run: |
+        echo "Platform: ${{ matrix.platform }}"
+        echo "OS: ${{ matrix.os }}"
+        cmake --version

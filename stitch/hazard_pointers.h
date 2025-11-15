@@ -5,6 +5,7 @@
 #include <vector>
 #include <array>
 #include <unordered_set>
+#include <stdexcept>
 
 namespace Stitch {
 namespace Detail {
