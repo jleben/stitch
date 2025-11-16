@@ -23,10 +23,10 @@ jobs:
             platform: linux
             arch: x64
             cpus: 4
-          - os: macos-26
-            platform: macos
-            arch: arm64
-            cpus: 3
+          # - os: macos-26
+          #   platform: macos
+          #   arch: arm64
+          #   cpus: 3
 
     steps:
     - name: Display Build Info
