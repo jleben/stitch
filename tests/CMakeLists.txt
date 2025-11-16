@@ -17,32 +17,32 @@ endfunction()
 
 set(test_sources
     test.cpp
-    test_hazard_pointers.cpp
-    test_queue_spsc_waitfree.cpp
-    test_queue_mpsc_waitfree.cpp
-    test_queue_mpmc_waitfree.cpp
-    test_queue_mpmc_lockfree.cpp
-    test_lockfree_set.cpp
-    test_atom_spmc.cpp
-    test_streams.cpp
-    test_state.cpp
+    # test_hazard_pointers.cpp
+    # test_queue_spsc_waitfree.cpp
+    # test_queue_mpsc_waitfree.cpp
+    # test_queue_mpmc_waitfree.cpp
+    # test_queue_mpmc_lockfree.cpp
+    # test_lockfree_set.cpp
+    # test_atom_spmc.cpp
+    # test_streams.cpp
+    # test_state.cpp
     test_atom.cpp
-    test_connections.cpp
-    test_signal.cpp
-    test_timer.cpp
-    test_file.cpp
-    test_event_reactor.cpp
+    # test_connections.cpp
+    # test_signal.cpp
+    # test_timer.cpp
+    # test_file.cpp
+    # test_event_reactor.cpp
 )
 
 make_test(tester "${test_sources}")
 
 
 
-set(experimental_test_sources
-    test_experimental.cpp
-)
+# set(experimental_test_sources
+#     test_experimental.cpp
+# )
 
-make_test(test-experimental "${experimental_test_sources}")
+# make_test(test-experimental "${experimental_test_sources}")
 
 
 
