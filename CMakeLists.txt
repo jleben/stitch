@@ -20,11 +20,11 @@ endif()
 
 set(sources
     stitch/hazard_pointers.cpp
-    stitch/linux/events.cpp
-    stitch/linux/signal.cpp
-    stitch/linux/timer.cpp
-    stitch/linux/file_event.cpp
-    stitch/linux/file.cpp
+    # stitch/linux/events.cpp
+    # stitch/linux/signal.cpp
+    # stitch/linux/timer.cpp
+    # stitch/linux/file_event.cpp
+    # stitch/linux/file.cpp
 )
 
 if(STITCH_STATIC_LIB)

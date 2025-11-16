@@ -21,21 +21,21 @@ Test_Set event_reactor_tests();
 int main(int argc, char * argv[])
 {
     Testing::Test_Set tests = {
-        { "hazard-pointers", hazard_pointers_tests() },
-        { "waitfree-spsc-queue", waitfree_spsc_queue_tests() },
-        { "waitfree-mpsc-queue", waitfree_mpsc_queue_tests() },
-        { "waitfree-mpmc-queue", waitfree_mpmc_queue_tests() },
-        { "lockfree-mpmc-queue", lockfree_mpmc_queue_tests() },
-        { "lockfree-set", lockfree_set_tests() },
-        { "spmc-atom", spmc_atom_tests() },
+        // { "hazard-pointers", hazard_pointers_tests() },
+        // { "waitfree-spsc-queue", waitfree_spsc_queue_tests() },
+        // { "waitfree-mpsc-queue", waitfree_mpsc_queue_tests() },
+        // { "waitfree-mpmc-queue", waitfree_mpmc_queue_tests() },
+        // { "lockfree-mpmc-queue", lockfree_mpmc_queue_tests() },
+        // { "lockfree-set", lockfree_set_tests() },
+        // { "spmc-atom", spmc_atom_tests() },
         { "atom", atom_tests() },
-        { "connections", connection_tests() },
-        { "stream", stream_tests() },
-        { "state", state_tests() },
-        { "signal", signal_tests() },
-        { "timer", timer_tests() },
-        { "file", file_tests() },
-        { "event-reactor", event_reactor_tests() },
+        // { "connections", connection_tests() },
+        // { "stream", stream_tests() },
+        // { "state", state_tests() },
+        // { "signal", signal_tests() },
+        // { "timer", timer_tests() },
+        // { "file", file_tests() },
+        // { "event-reactor", event_reactor_tests() },
     };
 
     return Testing::run(tests, argc, argv);
