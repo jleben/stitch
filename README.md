@@ -169,17 +169,43 @@ State updater and observers communicate the latest state of a value.
     thread observer2_thread(observer_func);
 
 
+## Building Stitch
+
+Stitch comes with a CMake based build system.
+
+CMake presets are available for building the Stitch shared library and tests. For example, on Linux:
+
+    cmake --preset linux-clang
+    cmake --build --preset linux-clang -j 4
+
+This will generate build outputs under `build/linux-clang`:
+
+- libstitch.so - shared library
+- tests/tester - test executable
+
+It is **advised to run the tests** on any system where you intend to use Stitch. The test suite includes **tests for lock-freedom and wait-freedom** of certain operations which can depend on the specific machine where Stitch is running.
+
+Test executable options:
+
+- `tester` - run all tests
+- `tester -v` - run tests with verbose output
+- `tester -l`- list all test names
+- `tests <regex>` - only run tests matching the regular expression `<regex>`
 
 
+## Limitations
 
+Stich relies on operations on `std::atomic` with a double-word template type being lock-free. On 64-bit systems, this requires the use of atomic 128-bit instructions in machine code. Though most modern processors support such instructions, most compilers do not readily generate them (presumably to maximize compatibility with older systems). That causes those `std::atomic` operations to not be lock-free. This page provides lots of useful insights into this issue and possible workarounds for different compilers: https://timur.audio/dwcas-in-c
 
+One build configuration known to satisfy all lock freedom requirements is:
 
+- Intel 64-bit architecture
+- Linux
+- Clang compiler
+- `libc++` standard library
+- Explicitly using the `-mcx16` compiler flag.
 
-
-
-
-
-
+This configuration is encoded in the `linux-clang` CMake preset and used to run tests in the CI pipeline (including tests for lock freedom and wait freedom).
 
 
 ## Comparison with Related Software
