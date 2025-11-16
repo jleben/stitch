@@ -39,10 +39,10 @@ public:
         int i = d_pointer_alloc_hint.load();
         int j = i;
         int m = H-1;
-        int c = 0;
+        // int c = 0;
         do
         {
-            ++c;
+            // ++c;
             j = (j + 1) & m;
             if (d_pointers[j].acquire())
             {

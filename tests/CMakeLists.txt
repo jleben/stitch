@@ -7,12 +7,12 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/testing/testing.cpp)
 endif()
 
 add_library(testing STATIC ../testing/testing.cpp)
-set_property(TARGET testing PROPERTY CXX_STANDARD 14)
+set_property(TARGET testing PROPERTY CXX_STANDARD 23)
 
 function(make_test name src)
     add_executable(${name} ${src})
     target_link_libraries(${name} testing stitch pthread atomic)
-    set_property(TARGET ${name} PROPERTY CXX_STANDARD 14)
+    set_property(TARGET ${name} PROPERTY CXX_STANDARD 23)
 endfunction()
 
 set(test_sources
