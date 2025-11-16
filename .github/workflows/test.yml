@@ -14,44 +14,51 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: 
+          - ubuntu-24.04
+          # Not yet supported
+          # - macos-26
         include:
-          - os: ubuntu-latest
-            platform: Linux
+          - os: ubuntu-24.04
+            platform: linux
+            arch: x64
+            cpus: 4
+          # - os: macos-26
+          #   platform: macos
+          #   arch: arm64
+          #   cpus: 3
 
     steps:
+    - name: Display Build Info
+      run: |
+        echo "Platform: ${{ matrix.platform }}"
+        echo "OS: ${{ matrix.os }}"
+        cmake --version
+
+    - name: Install dependencies
+      if: ${{ matrix.platform == 'linux' }}
+      run: sudo apt-get update && sudo apt-get install -y libc++-dev
+
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         submodules: recursive
 
-    - name: Install CMake
-      uses: jwlawson/actions-setup-cmake@v2
-      with:
-        cmake-version: '3.27.x'
-
     - name: Configure CMake
       run: |
-        cmake -B build \
-          -DSTITCH_BUILD_TESTS=ON \
-          -DCMAKE_BUILD_TYPE=Release
+        cmake --preset ${{ matrix.platform }}-clang
 
     - name: Build
-      run: cmake --build build --config Release
+      run: cmake --build --preset ${{ matrix.platform }}-clang -j${{ matrix.cpus }}
 
     - name: Run Tests
-      working-directory: build/tests
+      working-directory: build/${{ matrix.platform }}-clang/
       run: |
         set +e
-        ./tester 2>&1 | tee /dev/stderr | grep -q "The following tests failed:"
+        ./tests/tester 2>&1 | tee /dev/stderr | grep -q "The following tests failed:"
         if [ $? -eq 0 ]; then
           echo "Tests failed!"
           exit 1
         fi
         set -e
 
-    - name: Display Build Info
-      run: |
-        echo "Platform: ${{ matrix.platform }}"
-        echo "OS: ${{ matrix.os }}"
-        cmake --version
