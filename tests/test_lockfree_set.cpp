@@ -11,7 +11,7 @@ using namespace Testing;
 using namespace Stitch;
 using namespace std;
 
-static bool empty()
+static bool test_empty()
 {
     Test test;
 
@@ -26,7 +26,7 @@ static bool empty()
     return test.success();
 }
 
-static bool contains()
+static bool test_contains()
 {
     Test test;
 
@@ -63,7 +63,7 @@ static bool contains()
     return test.success();
 }
 
-static bool iteration()
+static bool test_iteration()
 {
     Test test;
 
@@ -139,7 +139,7 @@ static bool iteration()
     return test.success();
 }
 
-static bool reclamation()
+static bool test_reclamation()
 {
     using Detail::Hazard_Pointers;
 
@@ -279,7 +279,7 @@ static bool test_destructor()
     return test.success();
 }
 
-static bool stress()
+static bool test_stress()
 {
     Test test;
 
@@ -340,7 +340,7 @@ static bool stress()
                 // FIXME: This test is invalid.
                 // It is possible for set.for_each
                 // to iterate over the same value multiple times,
-                // if the value was remove and reinserted in the meantime.
+                // if the value was removed and reinserted in the meantime.
 
                 bool is_unique;
                 tie(ignore, is_unique) = unique_elements.emplace(e);
@@ -364,12 +364,13 @@ Test_Set lockfree_set_tests()
 {
     return
     {
-        { "empty", empty },
-        { "contains", contains },
-        { "iteration", iteration },
+        { "empty", test_empty },
+        { "contains", test_contains },
+        { "iteration", test_iteration },
         { "removal-during-iteration", test_removal_during_iteration },
         { "destructor", test_destructor },
-        { "reclamation", reclamation },
-        { "stress", stress },
+        { "reclamation", test_reclamation },
+        // FIXME: This test is flaky - see comment in test_stress.
+        // { "stress", test_stress },
     };
 }

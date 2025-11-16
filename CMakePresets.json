@@ -1,0 +1,37 @@
+{
+  "version": 7,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "linux-clang",
+      "displayName": "Linux-Clang",
+      "description": "Configuration for Linux, Clang",
+      "binaryDir": "${sourceDir}/build/linux-clang",
+      "cacheVariables": {
+        "STITCH_BUILD_TESTS": "ON",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_CXX_FLAGS": "-stdlib=libc++"
+      }
+    },
+    {
+      "name": "macos-clang",
+      "displayName": "MacOS-Clang",
+      "description": "Configuration for MacOS, Clang",
+      "inherits": "linux-clang"
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "linux-clang",
+      "configurePreset": "linux-clang"
+    },
+    {
+      "name": "macos-clang",
+      "configurePreset": "macos-clang"
+    }
+  ]
+}
