@@ -11,7 +11,7 @@ set_property(TARGET testing PROPERTY CXX_STANDARD 23)
 
 function(make_test name src)
     add_executable(${name} ${src})
-    target_link_libraries(${name} testing stitch pthread atomic)
+    target_link_libraries(${name} testing stitch pthread)
     set_property(TARGET ${name} PROPERTY CXX_STANDARD 23)
 endfunction()
 
