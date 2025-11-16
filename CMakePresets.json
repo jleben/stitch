@@ -21,7 +21,8 @@
       "name": "macos-clang",
       "displayName": "MacOS-Clang",
       "description": "Configuration for MacOS, Clang",
-      "inherits": "linux-clang"
+      "inherits": "linux-clang",
+      "binaryDir": "${sourceDir}/build/macos-clang"
     }
   ],
   "buildPresets": [
